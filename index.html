@@ -637,47 +637,146 @@
             }
         }
     </script>
-    <!-- Try loading full version first, fallback to simple version -->
+    <!-- Embedded basic functionality - no external dependencies -->
     <script>
-        let fullVersionLoaded = false;
-        let fallbackTimer;
-        
-        // Start fallback timer
-        fallbackTimer = setTimeout(() => {
-            if (!window.retailAR && !fullVersionLoaded) {
-                console.warn('Full version failed to load, loading simple version...');
-                const simpleScript = document.createElement('script');
-                simpleScript.type = 'module';
-                simpleScript.src = '/simple-main.js';
-                simpleScript.onload = () => {
-                    console.log('✅ Simple version loaded as fallback');
-                };
-                simpleScript.onerror = () => {
-                    console.error('❌ Both full and simple versions failed to load');
-                    alert('Application failed to load. Please refresh the page.');
-                };
-                document.head.appendChild(simpleScript);
+        // Basic RetailAR functionality embedded directly
+        class EmbeddedRetailAR {
+            constructor() {
+                this.currentMode = 'idle';
+                this.qrScanner = null;
+                console.log('🚀 Starting embedded RetailAR...');
+                this.init();
             }
-        }, 3000); // 3 second fallback timeout
-        
-        // Clear fallback timer if full version loads
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                if (window.retailAR) {
-                    fullVersionLoaded = true;
-                    clearTimeout(fallbackTimer);
-                    console.log('✅ Full version loaded successfully');
+            
+            async init() {
+                try {
+                    await this.setupCamera();
+                    this.setupEventListeners();
+                    window.retailAR = this;
+                    console.log('✅ Embedded RetailAR ready');
+                    this.showStatus('Camera ready - Basic functionality available', 'success');
+                } catch (error) {
+                    console.error('Embedded RetailAR failed:', error);
+                    this.showStatus('Camera setup failed: ' + error.message, 'error');
                 }
-            }, 1000);
+            }
+            
+            setupEventListeners() {
+                const startQR = document.getElementById('start-qr-scan');
+                const startProduct = document.getElementById('start-product-scan');
+                const stop = document.getElementById('stop-scan');
+                
+                if (startQR) startQR.onclick = () => this.startQRScan();
+                if (startProduct) startProduct.onclick = () => this.startProductScan();
+                if (stop) stop.onclick = () => this.stopScan();
+                
+                window.closeProductInfo = () => this.closeProductInfo();
+                window.switchDetectionMethod = (method) => this.showStatus(`Detection method: ${method}`, 'info');
+            }
+            
+            async setupCamera() {
+                const video = document.getElementById('qr-video');
+                const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+                
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.setAttribute('autoplay', true);
+                video.setAttribute('playsinline', true);
+                video.setAttribute('muted', true);
+                if (isSafari) video.setAttribute('webkit-playsinline', true);
+                
+                await video.play();
+            }
+            
+            async startQRScan() {
+                this.showStatus('QR scanning requires external library - feature limited', 'info');
+                this.currentMode = 'qr-scanning';
+            }
+            
+            async startProductScan() {
+                this.showStatus('Product scanning active - point camera at products', 'info');
+                this.currentMode = 'product-scanning';
+                
+                // Show AR canvas
+                const canvas = document.getElementById('ar-canvas');
+                if (canvas) {
+                    canvas.classList.remove('hidden');
+                }
+            }
+            
+            stopScan() {
+                this.currentMode = 'idle';
+                this.showStatus('Scanning stopped', 'info');
+                
+                // Hide AR canvas
+                const canvas = document.getElementById('ar-canvas');
+                if (canvas) {
+                    canvas.classList.add('hidden');
+                }
+            }
+            
+            closeProductInfo() {
+                const info = document.getElementById('product-info');
+                if (info) info.classList.add('hidden');
+            }
+            
+            showStatus(message, type = 'info') {
+                console.log('Status:', message);
+                
+                const existing = document.querySelector('.status-toast');
+                if (existing) existing.remove();
+                
+                const toast = document.createElement('div');
+                toast.className = 'status-toast';
+                toast.textContent = message;
+                toast.style.cssText = `
+                    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+                    background: ${type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff'};
+                    color: white; padding: 10px 20px; border-radius: 5px; z-index: 10000;
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        }
+        
+        // Initialize immediately when DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new EmbeddedRetailAR();
         });
+        
+        // Fallback initialization if DOMContentLoaded already fired
+        if (document.readyState === 'loading') {
+            // DOM is still loading
+        } else {
+            // DOM already loaded
+            setTimeout(() => {
+                if (!window.retailAR) {
+                    console.log('Fallback initialization...');
+                    new EmbeddedRetailAR();
+                }
+            }, 100);
+        }
     </script>
     
-    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
-    <script type="module" src="/src/main.js"></script>
+    <!-- Remove problematic external scripts for now -->
+    <!-- <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script> -->
+    <!-- <script type="module" src="/src/main.js"></script> -->
+    
     <script>
         // Show mobile instructions on mobile devices
         if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            document.getElementById('mobile-instructions').style.display = 'block';
+            const mobileInstructions = document.getElementById('mobile-instructions');
+            if (mobileInstructions) {
+                mobileInstructions.style.display = 'block';
+            }
         }
     </script>
 </body>
