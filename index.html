@@ -249,6 +249,13 @@
             <button class="btn" onclick="showOptionsAndLogs()" style="background: #667eea; border-color: #667eea;">Options & Logs</button>
         </div>
         
+        <!-- Hidden original buttons for functionality -->
+        <div style="display: none;">
+            <button id="start-qr-scan">Start QR Scan</button>
+            <button id="start-product-scan">Scan Products</button>
+            <button id="stop-scan">Stop</button>
+        </div>
+        
         <canvas id="ar-canvas" class="hidden"></canvas>
         <div id="product-info" class="product-info hidden">
             <h2 id="product-title">Product Name</h2>
@@ -414,26 +421,35 @@
         
         // Global functions for option buttons
         function startQRScan() {
-            if (window.retailAR) {
+            const startBtn = document.getElementById('start-qr-scan');
+            if (startBtn && window.retailAR) {
+                startBtn.click();
+            } else if (window.retailAR) {
                 window.retailAR.startQRScan();
             } else {
-                alert('RetailAR not loaded yet');
+                alert('RetailAR not loaded yet. Please wait a moment and try again.');
             }
         }
         
         function startProductScan() {
-            if (window.retailAR) {
+            const startBtn = document.getElementById('start-product-scan');
+            if (startBtn && window.retailAR) {
+                startBtn.click();
+            } else if (window.retailAR) {
                 window.retailAR.startProductScan();
             } else {
-                alert('RetailAR not loaded yet');
+                alert('RetailAR not loaded yet. Please wait a moment and try again.');
             }
         }
         
         function stopScan() {
-            if (window.retailAR) {
+            const stopBtn = document.getElementById('stop-scan');
+            if (stopBtn && window.retailAR) {
+                stopBtn.click();
+            } else if (window.retailAR) {
                 window.retailAR.stopScan();
             } else {
-                alert('RetailAR not loaded yet');
+                alert('RetailAR not loaded yet. Please wait a moment and try again.');
             }
         }
         
