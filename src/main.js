@@ -93,18 +93,89 @@ class RetailAR {
     async setupCamera() {
         try {
             const video = document.getElementById('qr-video');
-            const stream = await navigator.mediaDevices.getUserMedia({
+            
+            // Enhanced mobile camera constraints
+            const constraints = {
                 video: { 
-                    facingMode: 'environment',
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
+                    facingMode: { exact: 'environment' }, // Prefer back camera
+                    width: { 
+                        min: 640,
+                        ideal: 1280,
+                        max: 1920 
+                    },
+                    height: { 
+                        min: 480,
+                        ideal: 720,
+                        max: 1080 
+                    }
                 }
-            });
+            };
+            
+            // Check camera permissions first
+            if (navigator.permissions) {
+                try {
+                    const permission = await navigator.permissions.query({ name: 'camera' });
+                    console.log('Camera permission status:', permission.state);
+                    
+                    if (permission.state === 'denied') {
+                        throw new Error('Camera permission denied. Please enable camera access in your browser settings.');
+                    }
+                } catch (permErr) {
+                    console.warn('Permission check failed:', permErr);
+                }
+            }
+            
+            console.log('📷 Requesting camera access...');
+            
+            // Try exact environment camera first
+            let stream;
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+            } catch (err) {
+                console.warn('Failed with exact environment camera, trying fallback:', err);
+                // Fallback: try without exact constraint
+                constraints.video.facingMode = 'environment';
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                } catch (err2) {
+                    console.warn('Failed with environment preference, trying any camera:', err2);
+                    // Final fallback: any camera
+                    stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    });
+                }
+            }
+            
             video.srcObject = stream;
-            console.log('📷 Camera initialized');
+            
+            // Wait for video to be ready
+            await new Promise((resolve) => {
+                video.addEventListener('loadedmetadata', resolve, { once: true });
+            });
+            
+            console.log('📷 Camera initialized successfully');
+            console.log(`Camera resolution: ${video.videoWidth}x${video.videoHeight}`);
         } catch (error) {
             console.error('Camera setup failed:', error);
-            this.showError('Camera access required for AR functionality');
+            
+            let errorMessage = 'Camera access failed. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow camera access and refresh the page.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on this device.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Camera not supported on this device.';
+            } else if (error.name === 'OverconstrainedError') {
+                errorMessage += 'Camera constraints not supported.';
+            } else {
+                errorMessage += error.message;
+            }
+            
+            this.updateStatus('error', errorMessage);
         }
     }
     

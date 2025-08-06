@@ -217,6 +217,9 @@
         <div class="header">
             <h1>RetailAR</h1>
             <p>Scan QR codes and products with AR technology</p>
+            <div id="mobile-instructions" class="mobile-only" style="background: rgba(255,193,7,0.9); padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem; display: none;">
+                📱 <strong>Mobile Users:</strong> Please allow camera access when prompted for AR functionality to work.
+            </div>
         </div>
         
         <div class="scanner-container">
@@ -259,5 +262,11 @@
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
     
     <script type="module" src="/src/main.js"></script>
+    <script>
+        // Show mobile instructions on mobile devices
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            document.getElementById('mobile-instructions').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
