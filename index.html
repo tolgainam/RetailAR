@@ -302,6 +302,69 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 20000;
+        color: white;
+        text-align: center;
+        padding: 20px;
+    ">
+        <div style="margin-bottom: 30px;">
+            <h1 style="font-size: 3rem; margin-bottom: 10px; animation: pulse 2s infinite;">🔮 RetailAR</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Loading your magical shopping experience...</p>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+            <div class="loader" style="
+                width: 50px;
+                height: 50px;
+                border: 5px solid rgba(255,255,255,0.3);
+                border-top: 5px solid white;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto 20px;
+            "></div>
+            <div id="loading-progress" style="font-size: 1rem; opacity: 0.8;">Starting up...</div>
+        </div>
+        
+        <div style="max-width: 500px; min-height: 120px; display: flex; align-items: center; justify-content: center;">
+            <p id="loading-joke" style="
+                font-size: 1.1rem;
+                line-height: 1.5;
+                background: rgba(255,255,255,0.1);
+                padding: 20px;
+                border-radius: 10px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.2);
+                transition: opacity 0.3s ease-in-out;
+            ">
+                Why don't AR cameras ever get tired? Because they always focus on the positive! 📸✨
+            </p>
+        </div>
+        
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+        </style>
+    </div>
+
     <div class="container">
         
         <div class="scanner-container">
@@ -637,297 +700,106 @@
             }
         }
     </script>
-    <!-- Embedded basic functionality - no external dependencies -->
+    <!-- Loading Manager with Jokes -->
     <script>
-        // Basic RetailAR functionality embedded directly
-        class EmbeddedRetailAR {
-            constructor() {
-                this.currentMode = 'idle';
-                this.qrScanner = null;
-                console.log('🚀 Starting embedded RetailAR...');
-                this.init();
-            }
-            
-            async init() {
-                try {
-                    await this.setupCamera();
-                    this.setupEventListeners();
-                    window.retailAR = this;
-                    console.log('✅ Embedded RetailAR ready');
-                    this.showStatus('Camera ready - Basic functionality available', 'success');
-                } catch (error) {
-                    console.error('Embedded RetailAR failed:', error);
-                    this.showStatus('Camera setup failed: ' + error.message, 'error');
+        const jokes = [
+            "Why don't AR cameras ever get tired? Because they always focus on the positive! 📸✨",
+            "What did the AR app say to the product? 'I've got my eye on you!' 👁️",
+            "Why do QR codes make terrible comedians? Their jokes are too square! ⬛😂",
+            "What's an AR developer's favorite type of music? Heavy metal... detection! 🤖🎵",
+            "Why did the product scanner break up with the barcode? It wasn't getting enough recognition! 💔",
+            "How does AR stay in shape? By doing virtual push-ups! 💪",
+            "What do you call a magical product scanner? Abra-cadabra-code! 🎩✨",
+            "Why don't products ever hide from AR? Because there's no escaping the matrix! 🔍",
+            "What's the difference between AR and reality? About 3 seconds of loading time! ⏰",
+            "Why did the developer choose AR over VR? Because reality needed an upgrade! 🚀",
+            "What do you call an AR app that tells jokes? Augmented Comedy! 😄",
+            "Why are AR cameras so confident? They always know their angle! 📐",
+            "What's an AR scanner's favorite movie? The Matrix... it's all about seeing the code! 🕶️",
+            "Why don't AR apps ever get lost? They always know where they stand in space! 🗺️",
+            "What did one pixel say to another? 'You're looking sharp today!' ✨"
+        ];
+        
+        let currentJokeIndex = 0;
+        let jokeInterval;
+        let progressSteps = [
+            "Starting up...",
+            "Loading OpenCV.js... (this might take a moment) ☕",
+            "Initializing camera permissions... 📱",
+            "Setting up AR renderer... 🎨",
+            "Loading product database... 📦",
+            "Calibrating detection systems... 🎯",
+            "Almost ready... 🚀"
+        ];
+        let currentStep = 0;
+        
+        // Start the loading experience
+        function startLoading() {
+            // Update jokes every 3 seconds
+            jokeInterval = setInterval(() => {
+                currentJokeIndex = (currentJokeIndex + 1) % jokes.length;
+                const jokeElement = document.getElementById('loading-joke');
+                if (jokeElement) {
+                    jokeElement.style.opacity = '0';
+                    setTimeout(() => {
+                        jokeElement.textContent = jokes[currentJokeIndex];
+                        jokeElement.style.opacity = '1';
+                    }, 300);
                 }
-            }
+            }, 3500);
             
-            setupEventListeners() {
-                const startQR = document.getElementById('start-qr-scan');
-                const startProduct = document.getElementById('start-product-scan');
-                const stop = document.getElementById('stop-scan');
-                
-                if (startQR) startQR.onclick = () => this.startQRScan();
-                if (startProduct) startProduct.onclick = () => this.startProductScan();
-                if (stop) stop.onclick = () => this.stopScan();
-                
-                window.closeProductInfo = () => this.closeProductInfo();
-                window.switchDetectionMethod = (method) => this.showStatus(`Detection method: ${method}`, 'info');
-            }
-            
-            async setupCamera() {
-                const video = document.getElementById('qr-video');
-                const isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
-                
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                video.srcObject = stream;
-                video.setAttribute('autoplay', true);
-                video.setAttribute('playsinline', true);
-                video.setAttribute('muted', true);
-                if (isSafari) video.setAttribute('webkit-playsinline', true);
-                
-                await video.play();
-            }
-            
-            async startQRScan() {
-                this.showStatus('QR scanning requires external library - feature limited', 'info');
-                this.currentMode = 'qr-scanning';
-            }
-            
-            async startProductScan() {
-                this.showStatus('Product scanning active - point camera at products', 'info');
-                this.currentMode = 'product-scanning';
-                
-                // Show AR canvas
-                const canvas = document.getElementById('ar-canvas');
-                if (canvas) {
-                    canvas.classList.remove('hidden');
+            // Update progress steps
+            const updateProgress = () => {
+                const progressElement = document.getElementById('loading-progress');
+                if (progressElement && currentStep < progressSteps.length - 1) {
+                    currentStep++;
+                    progressElement.textContent = progressSteps[currentStep];
+                    setTimeout(updateProgress, 2000 + Math.random() * 1500); // Random delay 2-3.5s
                 }
-                
-                // Start detection loop
-                this.startDetectionLoop();
-            }
-            
-            startDetectionLoop() {
-                if (this.detectionInterval) return;
-                
-                console.log('🔄 Starting detection loop...');
-                this.detectionInterval = setInterval(() => {
-                    if (this.currentMode !== 'product-scanning') return;
-                    
-                    try {
-                        // Capture frame from video
-                        const video = document.getElementById('qr-video');
-                        if (video && video.videoWidth > 0) {
-                            this.detectProducts(video);
-                        }
-                    } catch (error) {
-                        console.error('Detection error:', error);
-                    }
-                }, 500); // 2 FPS detection
-            }
-            
-            detectProducts(video) {
-                // Simple detection simulation - in real app this would use OpenCV or ML
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                ctx.drawImage(video, 0, 0);
-                
-                // Get image data for analysis
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                
-                // Simple color-based detection (looking for distinct color patterns)
-                const result = this.analyzeFrame(imageData);
-                
-                if (result.detected) {
-                    console.log('🎯 Product detected:', result.product);
-                    this.handleProductDetection(result);
-                }
-            }
-            
-            analyzeFrame(imageData) {
-                const data = imageData.data;
-                let redCount = 0, blueCount = 0, greenCount = 0;
-                
-                // Sample pixels for color analysis
-                for (let i = 0; i < data.length; i += 4000) { // Sample every 1000th pixel
-                    const r = data[i];
-                    const g = data[i + 1];
-                    const b = data[i + 2];
-                    
-                    if (r > 150 && g < 100 && b < 100) redCount++;
-                    if (b > 150 && r < 100 && g < 100) blueCount++;
-                    if (g > 150 && r < 100 && b < 100) greenCount++;
-                }
-                
-                // Simple detection logic
-                if (redCount > 50) {
-                    return {
-                        detected: true,
-                        product: 'Red Product',
-                        confidence: Math.min(redCount / 100, 1),
-                        color: 'red'
-                    };
-                } else if (blueCount > 50) {
-                    return {
-                        detected: true,
-                        product: 'Blue Product',
-                        confidence: Math.min(blueCount / 100, 1),
-                        color: 'blue'
-                    };
-                } else if (greenCount > 50) {
-                    return {
-                        detected: true,
-                        product: 'Green Product',
-                        confidence: Math.min(greenCount / 100, 1),
-                        color: 'green'
-                    };
-                }
-                
-                return { detected: false };
-            }
-            
-            handleProductDetection(result) {
-                console.log('🎯 Product detected:', result);
-                
-                // Show product info
-                this.showProductInfo(result);
-                
-                // Show detection stats
-                this.showDetectionStats(result);
-                
-                // Pause detection briefly
-                this.pauseDetection();
-            }
-            
-            showProductInfo(result) {
-                const productInfo = document.getElementById('product-info');
-                const title = document.getElementById('product-title');
-                const description = document.getElementById('product-description');
-                const details = document.getElementById('product-details');
-                
-                if (productInfo && title && description && details) {
-                    title.textContent = result.product;
-                    description.textContent = `Detected ${result.color} colored object with ${(result.confidence * 100).toFixed(1)}% confidence`;
-                    details.innerHTML = `
-                        <div><strong>Detection Method:</strong> Color Analysis</div>
-                        <div><strong>Primary Color:</strong> ${result.color}</div>
-                        <div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>
-                    `;
-                    
-                    productInfo.classList.remove('hidden');
-                }
-            }
-            
-            showDetectionStats(result) {
-                const stats = document.getElementById('detection-stats');
-                if (stats) {
-                    stats.innerHTML = `
-                        <div><strong>Product:</strong> ${result.product}</div>
-                        <div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>
-                        <div><strong>Method:</strong> Color Detection</div>
-                        <div><strong>Color:</strong> ${result.color}</div>
-                    `;
-                    stats.classList.remove('hidden');
-                }
-            }
-            
-            pauseDetection() {
-                if (this.detectionInterval) {
-                    clearInterval(this.detectionInterval);
-                    this.detectionInterval = null;
-                }
-                
-                // Resume after 3 seconds
+            };
+            setTimeout(updateProgress, 1500);
+        }
+        
+        // Hide loading screen when app is ready
+        function hideLoadingScreen() {
+            clearInterval(jokeInterval);
+            const loadingScreen = document.getElementById('loading-screen');
+            if (loadingScreen) {
+                loadingScreen.style.transition = 'opacity 0.8s ease-out';
+                loadingScreen.style.opacity = '0';
                 setTimeout(() => {
-                    if (this.currentMode === 'product-scanning') {
-                        this.startDetectionLoop();
-                    }
-                }, 3000);
-            }
-            
-            stopScan() {
-                this.currentMode = 'idle';
-                this.showStatus('Scanning stopped', 'info');
-                
-                // Stop detection loop
-                if (this.detectionInterval) {
-                    clearInterval(this.detectionInterval);
-                    this.detectionInterval = null;
-                }
-                
-                // Hide AR canvas
-                const canvas = document.getElementById('ar-canvas');
-                if (canvas) {
-                    canvas.classList.add('hidden');
-                }
-                
-                // Hide detection stats
-                const stats = document.getElementById('detection-stats');
-                if (stats) {
-                    stats.classList.add('hidden');
-                }
-                
-                // Hide product info
-                this.closeProductInfo();
-            }
-            
-            closeProductInfo() {
-                const info = document.getElementById('product-info');
-                if (info) info.classList.add('hidden');
-            }
-            
-            showStatus(message, type = 'info') {
-                console.log('Status:', message);
-                
-                const existing = document.querySelector('.status-toast');
-                if (existing) existing.remove();
-                
-                const toast = document.createElement('div');
-                toast.className = 'status-toast';
-                toast.textContent = message;
-                toast.style.cssText = `
-                    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
-                    background: ${type === 'error' ? '#ff4444' : type === 'success' ? '#44ff44' : '#4444ff'};
-                    color: white; padding: 10px 20px; border-radius: 5px; z-index: 10000;
-                `;
-                document.body.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                    loadingScreen.style.display = 'none';
+                }, 800);
             }
         }
         
-        // Initialize immediately when DOM loads
-        document.addEventListener('DOMContentLoaded', () => {
-            new EmbeddedRetailAR();
-        });
+        // Start loading immediately
+        startLoading();
         
-        // Fallback initialization if DOMContentLoaded already fired
-        if (document.readyState === 'loading') {
-            // DOM is still loading
-        } else {
-            // DOM already loaded
-            setTimeout(() => {
-                if (!window.retailAR) {
-                    console.log('Fallback initialization...');
-                    new EmbeddedRetailAR();
-                }
-            }, 100);
-        }
+        // Hide loading screen when RetailAR loads successfully
+        const checkForRetailAR = setInterval(() => {
+            if (window.retailAR) {
+                clearInterval(checkForRetailAR);
+                // Wait a bit more to show the final joke
+                setTimeout(() => {
+                    document.getElementById('loading-progress').textContent = 'Ready to scan! 🎉';
+                    setTimeout(hideLoadingScreen, 1000);
+                }, 1000);
+            }
+        }, 100);
+        
+        // Fallback - hide after 15 seconds regardless
+        setTimeout(() => {
+            if (document.getElementById('loading-screen').style.display !== 'none') {
+                document.getElementById('loading-progress').textContent = 'Loading complete - Let\\'s go! 🚀';
+                setTimeout(hideLoadingScreen, 1500);
+            }
+        }, 15000);
     </script>
     
-    <!-- Remove problematic external scripts for now -->
-    <!-- <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script> -->
-    <!-- <script type="module" src="/src/main.js"></script> -->
+    <!-- Restore full RetailAR version -->
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+    <script type="module" src="/src/main.js"></script>
     
     <script>
         // Show mobile instructions on mobile devices
