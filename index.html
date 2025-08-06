@@ -392,8 +392,8 @@
                     <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         <h3 style="color: #667eea; margin-bottom: 15px;">📱 Controls</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                            <button onclick="startQRScan()" class="popup-btn" style="background: #28a745;">Start QR Scan</button>
-                            <button onclick="startProductScan()" class="popup-btn" style="background: #007bff;">Scan Products</button>
+                            <button onclick="startQRScanWithRetry()" class="popup-btn" style="background: #28a745;">Start QR Scan</button>
+                            <button onclick="startProductScanWithRetry()" class="popup-btn" style="background: #007bff;">Scan Products</button>
                             <button onclick="stopScan()" class="popup-btn" style="background: #dc3545;">Stop Scan</button>
                             <button onclick="closeProductInfo()" class="popup-btn" style="background: #6c757d;">Close Product Info</button>
                         </div>
@@ -420,6 +420,12 @@
                             Browser: ${/^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? 'Safari' : /edg/i.test(navigator.userAgent) ? 'Edge' : /firefox/i.test(navigator.userAgent) ? 'Firefox' : 'Chrome/Other'}<br>
                             Screen: ${screen.width}×${screen.height}<br>
                             Viewport: ${window.innerWidth}×${window.innerHeight}<br>
+                            <br>
+                            
+                            <strong>=== LOADING STATUS ===</strong><br>
+                            RetailAR loaded: ${window.retailAR ? '✅ Yes' : '❌ No'}<br>
+                            OpenCV loaded: ${typeof cv !== 'undefined' && cv.Mat ? '✅ Yes' : '❌ No'}<br>
+                            Main.js loaded: ${document.querySelector('script[src*="main.js"]') ? '✅ Script Found' : '❌ Script Missing'}<br>
                             <br>
                             
                             <strong>=== PERMISSIONS ===</strong><br>
@@ -489,37 +495,61 @@
             }
         }
         
-        // Global functions for option buttons
+        // Global functions for option buttons with better debugging
         function startQRScan() {
+            console.log('startQRScan called');
+            console.log('window.retailAR exists:', !!window.retailAR);
+            
             const startBtn = document.getElementById('start-qr-scan');
-            if (startBtn && window.retailAR) {
+            console.log('Hidden button found:', !!startBtn);
+            
+            if (startBtn) {
+                console.log('Clicking hidden start-qr-scan button');
                 startBtn.click();
             } else if (window.retailAR) {
+                console.log('Calling retailAR.startQRScan() directly');
                 window.retailAR.startQRScan();
             } else {
-                alert('RetailAR not loaded yet. Please wait a moment and try again.');
+                console.error('Neither hidden button nor retailAR found');
+                alert('Loading... Please wait a moment and try again.\n\nDebug info:\n- RetailAR loaded: ' + !!window.retailAR + '\n- Hidden button found: ' + !!startBtn);
             }
         }
         
         function startProductScan() {
+            console.log('startProductScan called');
+            console.log('window.retailAR exists:', !!window.retailAR);
+            
             const startBtn = document.getElementById('start-product-scan');
-            if (startBtn && window.retailAR) {
+            console.log('Hidden button found:', !!startBtn);
+            
+            if (startBtn) {
+                console.log('Clicking hidden start-product-scan button');
                 startBtn.click();
             } else if (window.retailAR) {
+                console.log('Calling retailAR.startProductScan() directly');
                 window.retailAR.startProductScan();
             } else {
-                alert('RetailAR not loaded yet. Please wait a moment and try again.');
+                console.error('Neither hidden button nor retailAR found');
+                alert('Loading... Please wait a moment and try again.\n\nDebug info:\n- RetailAR loaded: ' + !!window.retailAR + '\n- Hidden button found: ' + !!startBtn);
             }
         }
         
         function stopScan() {
+            console.log('stopScan called');
+            console.log('window.retailAR exists:', !!window.retailAR);
+            
             const stopBtn = document.getElementById('stop-scan');
-            if (stopBtn && window.retailAR) {
+            console.log('Hidden button found:', !!stopBtn);
+            
+            if (stopBtn) {
+                console.log('Clicking hidden stop-scan button');
                 stopBtn.click();
             } else if (window.retailAR) {
+                console.log('Calling retailAR.stopScan() directly');
                 window.retailAR.stopScan();
             } else {
-                alert('RetailAR not loaded yet. Please wait a moment and try again.');
+                console.error('Neither hidden button nor retailAR found');
+                alert('Loading... Please wait a moment and try again.\n\nDebug info:\n- RetailAR loaded: ' + !!window.retailAR + '\n- Hidden button found: ' + !!stopBtn);
             }
         }
         
@@ -541,6 +571,45 @@
                 window.retailAR.switchDetectionMethod(method);
             } else {
                 alert('Detection system not loaded yet');
+            }
+        }
+        
+        // Add a function to wait for RetailAR to load
+        function waitForRetailAR(callback, maxWait = 5000) {
+            const startTime = Date.now();
+            const checkInterval = setInterval(() => {
+                if (window.retailAR) {
+                    clearInterval(checkInterval);
+                    callback();
+                } else if (Date.now() - startTime > maxWait) {
+                    clearInterval(checkInterval);
+                    alert('RetailAR failed to load after ' + (maxWait/1000) + ' seconds. Please refresh the page.');
+                }
+            }, 100);
+        }
+        
+        // Enhanced button functions with auto-retry
+        function startProductScanWithRetry() {
+            if (window.retailAR) {
+                startProductScan();
+            } else {
+                console.log('RetailAR not loaded, waiting...');
+                waitForRetailAR(() => {
+                    console.log('RetailAR loaded, starting product scan');
+                    startProductScan();
+                });
+            }
+        }
+        
+        function startQRScanWithRetry() {
+            if (window.retailAR) {
+                startQRScan();
+            } else {
+                console.log('RetailAR not loaded, waiting...');
+                waitForRetailAR(() => {
+                    console.log('RetailAR loaded, starting QR scan');
+                    startQRScan();
+                });
             }
         }
     </script>
