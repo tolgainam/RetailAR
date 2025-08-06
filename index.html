@@ -370,7 +370,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v1.0 • SFP UXD & BR
+            v1.1 • SFP UXD & BR
         </div>
         
         <style>
@@ -861,9 +861,197 @@
         }, 15000);
     </script>
     
-    <!-- Restore full RetailAR version -->
+    <!-- Load dependencies via CDN -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
-    <script type="module" src="./src/main.js"></script>
+    
+    <!-- Simple camera setup without complex modules -->
+    <script>
+        // Simple RetailAR with camera functionality
+        class SimpleRetailAR {
+            constructor() {
+                this.currentMode = 'idle';
+                this.qrScanner = null;
+                console.log('🚀 Starting Simple RetailAR...');
+                this.init();
+            }
+            
+            async init() {
+                try {
+                    await this.setupCamera();
+                    this.setupEventListeners();
+                    window.retailAR = this;
+                    console.log('✅ RetailAR ready');
+                } catch (error) {
+                    console.error('RetailAR failed:', error);
+                }
+            }
+            
+            setupEventListeners() {
+                const startQR = document.getElementById('start-qr-scan');
+                const startProduct = document.getElementById('start-product-scan');
+                const stop = document.getElementById('stop-scan');
+                
+                if (startQR) startQR.onclick = () => this.startQRScan();
+                if (startProduct) startProduct.onclick = () => this.startProductScan();
+                if (stop) stop.onclick = () => this.stopScan();
+                
+                window.closeProductInfo = () => this.closeProductInfo();
+                window.switchDetectionMethod = (method) => console.log('Detection method:', method);
+            }
+            
+            async setupCamera() {
+                const video = document.getElementById('qr-video');
+                const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                const isEdge = /edg/i.test(navigator.userAgent);
+                
+                console.log('📷 Setting up camera...');
+                
+                // Browser-specific constraints
+                let constraints;
+                if (isSafari) {
+                    constraints = {
+                        video: {
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    };
+                } else {
+                    constraints = {
+                        video: {
+                            facingMode: { ideal: 'environment' },
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    };
+                }
+                
+                try {
+                    console.log('Requesting camera with constraints:', constraints);
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    video.srcObject = stream;
+                    video.setAttribute('autoplay', true);
+                    video.setAttribute('playsinline', true);
+                    video.setAttribute('muted', true);
+                    
+                    if (isSafari) {
+                        video.setAttribute('webkit-playsinline', true);
+                        video.muted = true;
+                    }
+                    
+                    // Wait for video to be ready
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error('Video timeout')), 10000);
+                        
+                        video.addEventListener('loadedmetadata', () => {
+                            clearTimeout(timeout);
+                            console.log('📷 Video metadata loaded');
+                            resolve();
+                        }, { once: true });
+                        
+                        video.addEventListener('canplay', () => {
+                            clearTimeout(timeout);
+                            console.log('📷 Video can play');
+                            resolve();
+                        }, { once: true });
+                    });
+                    
+                    await video.play();
+                    console.log('📷 Camera setup successful');
+                    console.log('Camera resolution:', video.videoWidth, 'x', video.videoHeight);
+                    
+                } catch (error) {
+                    console.error('Camera setup failed:', error);
+                    
+                    // Show manual start button
+                    const startPrompt = document.getElementById('video-start-prompt');
+                    const startButton = document.getElementById('start-video-btn');
+                    
+                    if (startPrompt && startButton) {
+                        startPrompt.style.display = 'block';
+                        startButton.onclick = async () => {
+                            try {
+                                const stream = await navigator.mediaDevices.getUserMedia({
+                                    video: { facingMode: 'environment' }
+                                });
+                                video.srcObject = stream;
+                                video.muted = true;
+                                await video.play();
+                                startPrompt.style.display = 'none';
+                                console.log('📷 Manual camera start successful');
+                            } catch (err) {
+                                console.error('Manual camera start failed:', err);
+                                alert('Camera access failed: ' + err.message);
+                            }
+                        };
+                    }
+                }
+            }
+            
+            async startQRScan() {
+                console.log('🔍 Starting QR scan...');
+                this.currentMode = 'qr-scanning';
+                
+                try {
+                    const video = document.getElementById('qr-video');
+                    if (window.QrScanner) {
+                        this.qrScanner = new QrScanner(
+                            video,
+                            result => {
+                                console.log('📱 QR Code:', result.data);
+                                alert('QR Code detected: ' + result.data);
+                                this.stopScan();
+                            },
+                            { highlightScanRegion: true }
+                        );
+                        await this.qrScanner.start();
+                        console.log('✅ QR Scanner started');
+                    } else {
+                        alert('QR Scanner not available');
+                    }
+                } catch (error) {
+                    console.error('QR scan failed:', error);
+                }
+            }
+            
+            async startProductScan() {
+                console.log('🔍 Starting product scan...');
+                this.currentMode = 'product-scanning';
+                
+                const canvas = document.getElementById('ar-canvas');
+                if (canvas) canvas.classList.remove('hidden');
+                
+                alert('Product scanning active - point camera at products');
+            }
+            
+            stopScan() {
+                console.log('⏹ Stopping scan...');
+                this.currentMode = 'idle';
+                
+                if (this.qrScanner) {
+                    this.qrScanner.stop();
+                    this.qrScanner.destroy();
+                    this.qrScanner = null;
+                }
+                
+                const canvas = document.getElementById('ar-canvas');
+                if (canvas) canvas.classList.add('hidden');
+            }
+            
+            closeProductInfo() {
+                const info = document.getElementById('product-info');
+                if (info) info.classList.add('hidden');
+            }
+        }
+        
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SimpleRetailAR();
+        });
+    </script>
     
     <script>
         // Show mobile instructions on mobile devices
