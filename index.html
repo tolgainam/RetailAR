@@ -325,15 +325,23 @@
         </div>
         
         <div style="margin-bottom: 30px;">
-            <div class="loader" style="
-                width: 50px;
-                height: 50px;
-                border: 5px solid rgba(255,255,255,0.3);
-                border-top: 5px solid white;
-                border-radius: 50%;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 20px;
-            "></div>
+            <!-- Progress Circle -->
+            <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 20px;">
+                <svg width="100" height="100" style="transform: rotate(-90deg);">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="4"></circle>
+                    <circle id="progress-circle" cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="4" 
+                            stroke-dasharray="283" stroke-dashoffset="283" style="transition: stroke-dashoffset 0.5s ease;"></circle>
+                </svg>
+                <div id="progress-percentage" style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 1.2rem;
+                    font-weight: bold;
+                    color: white;
+                ">0%</div>
+            </div>
             <div id="loading-progress" style="font-size: 1rem; opacity: 0.8;">Starting up...</div>
         </div>
         
@@ -723,19 +731,44 @@
         let currentJokeIndex = 0;
         let jokeInterval;
         let progressSteps = [
-            "Starting up...",
-            "Loading OpenCV.js... (this might take a moment) ☕",
-            "Initializing camera permissions... 📱",
-            "Setting up AR renderer... 🎨",
-            "Loading product database... 📦",
-            "Calibrating detection systems... 🎯",
-            "Almost ready... 🚀"
+            { text: "Starting up...", percent: 0 },
+            { text: "Loading OpenCV.js... (this might take a moment) ☕", percent: 15 },
+            { text: "Initializing camera permissions... 📱", percent: 35 },
+            { text: "Setting up AR renderer... 🎨", percent: 55 },
+            { text: "Loading product database... 📦", percent: 70 },
+            { text: "Calibrating detection systems... 🎯", percent: 85 },
+            { text: "Almost ready... 🚀", percent: 95 },
+            { text: "Ready to scan! 🎉", percent: 100 }
         ];
         let currentStep = 0;
+        let currentProgress = 0;
+        let targetProgress = 0;
+        
+        // Update progress circle and percentage
+        function updateProgressCircle(percent) {
+            const circle = document.getElementById('progress-circle');
+            const percentageEl = document.getElementById('progress-percentage');
+            
+            if (circle && percentageEl) {
+                const circumference = 2 * Math.PI * 45; // radius = 45
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+                percentageEl.textContent = Math.round(percent) + '%';
+            }
+        }
+        
+        // Smooth progress animation
+        function animateProgress() {
+            if (currentProgress < targetProgress) {
+                currentProgress += 0.5; // Smooth increment
+                updateProgressCircle(currentProgress);
+                requestAnimationFrame(animateProgress);
+            }
+        }
         
         // Start the loading experience
         function startLoading() {
-            // Update jokes every 3 seconds
+            // Update jokes every 8 seconds
             jokeInterval = setInterval(() => {
                 currentJokeIndex = (currentJokeIndex + 1) % jokes.length;
                 const jokeElement = document.getElementById('loading-joke');
@@ -746,18 +779,33 @@
                         jokeElement.style.opacity = '1';
                     }, 300);
                 }
-            }, 3500);
+            }, 8000);
             
-            // Update progress steps
+            // Update progress steps with real timing
             const updateProgress = () => {
                 const progressElement = document.getElementById('loading-progress');
-                if (progressElement && currentStep < progressSteps.length - 1) {
+                if (currentStep < progressSteps.length - 1) {
                     currentStep++;
-                    progressElement.textContent = progressSteps[currentStep];
-                    setTimeout(updateProgress, 2000 + Math.random() * 1500); // Random delay 2-3.5s
+                    const step = progressSteps[currentStep];
+                    
+                    if (progressElement) {
+                        progressElement.textContent = step.text;
+                    }
+                    
+                    // Animate to new progress
+                    targetProgress = step.percent;
+                    animateProgress();
+                    
+                    // Schedule next step (realistic timing)
+                    const delays = [1500, 3000, 2000, 2500, 1800, 2200, 1000]; // Realistic delays
+                    if (currentStep < delays.length) {
+                        setTimeout(updateProgress, delays[currentStep - 1]);
+                    }
                 }
             };
-            setTimeout(updateProgress, 1500);
+            
+            // Start progress updates
+            setTimeout(updateProgress, 1000);
         }
         
         // Hide loading screen when app is ready
@@ -780,11 +828,14 @@
         const checkForRetailAR = setInterval(() => {
             if (window.retailAR) {
                 clearInterval(checkForRetailAR);
-                // Wait a bit more to show the final joke
-                setTimeout(() => {
-                    document.getElementById('loading-progress').textContent = 'Ready to scan! 🎉';
-                    setTimeout(hideLoadingScreen, 1000);
-                }, 1000);
+                
+                // Jump to 100% completion
+                targetProgress = 100;
+                animateProgress();
+                document.getElementById('loading-progress').textContent = 'Ready to scan! 🎉';
+                
+                // Wait a moment to show 100% then hide
+                setTimeout(hideLoadingScreen, 1500);
             }
         }, 100);
         
@@ -799,7 +850,7 @@
     
     <!-- Restore full RetailAR version -->
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="./src/main.js"></script>
     
     <script>
         // Show mobile instructions on mobile devices
