@@ -574,18 +574,42 @@
             }
         }
         
-        // Add a function to wait for RetailAR to load
-        function waitForRetailAR(callback, maxWait = 5000) {
+        // Add a function to wait for RetailAR to load with better error reporting
+        function waitForRetailAR(callback, maxWait = 10000) {
             const startTime = Date.now();
+            let attempts = 0;
             const checkInterval = setInterval(() => {
+                attempts++;
+                console.log(`Waiting for RetailAR... attempt ${attempts} (${Date.now() - startTime}ms)`);
+                
                 if (window.retailAR) {
                     clearInterval(checkInterval);
+                    console.log('RetailAR loaded successfully after', attempts, 'attempts');
                     callback();
                 } else if (Date.now() - startTime > maxWait) {
                     clearInterval(checkInterval);
-                    alert('RetailAR failed to load after ' + (maxWait/1000) + ' seconds. Please refresh the page.');
+                    console.error('RetailAR failed to load after', maxWait, 'ms');
+                    
+                    // Check what's available
+                    console.log('Available globals:', {
+                        retailAR: !!window.retailAR,
+                        THREE: !!window.THREE,
+                        cv: typeof cv !== 'undefined'
+                    });
+                    
+                    alert(`RetailAR failed to load after ${maxWait/1000} seconds.\n\nThis might be due to:\n- Slow network connection\n- JavaScript errors in modules\n- Missing dependencies\n\nPlease:\n1. Check your internet connection\n2. Try refreshing the page\n3. Check browser console for errors`);
                 }
-            }, 100);
+            }, 200);
+        }
+        
+        // Simple fallback functions that don't require full RetailAR
+        function simpleStartCamera() {
+            const video = document.getElementById('qr-video');
+            if (video && video.srcObject) {
+                alert('Camera is already running. Full AR features require the main application to load.');
+            } else {
+                alert('Camera not initialized. Please refresh the page to restart the application.');
+            }
         }
         
         // Enhanced button functions with auto-retry
@@ -613,8 +637,42 @@
             }
         }
     </script>
-    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+    <!-- Try loading full version first, fallback to simple version -->
+    <script>
+        let fullVersionLoaded = false;
+        let fallbackTimer;
+        
+        // Start fallback timer
+        fallbackTimer = setTimeout(() => {
+            if (!window.retailAR && !fullVersionLoaded) {
+                console.warn('Full version failed to load, loading simple version...');
+                const simpleScript = document.createElement('script');
+                simpleScript.type = 'module';
+                simpleScript.src = '/simple-main.js';
+                simpleScript.onload = () => {
+                    console.log('✅ Simple version loaded as fallback');
+                };
+                simpleScript.onerror = () => {
+                    console.error('❌ Both full and simple versions failed to load');
+                    alert('Application failed to load. Please refresh the page.');
+                };
+                document.head.appendChild(simpleScript);
+            }
+        }, 3000); // 3 second fallback timeout
+        
+        // Clear fallback timer if full version loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.retailAR) {
+                    fullVersionLoaded = true;
+                    clearTimeout(fallbackTimer);
+                    console.log('✅ Full version loaded successfully');
+                }
+            }, 1000);
+        });
+    </script>
     
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
     <script type="module" src="/src/main.js"></script>
     <script>
         // Show mobile instructions on mobile devices
