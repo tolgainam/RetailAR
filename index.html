@@ -91,8 +91,8 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 400px;
-            height: 400px;
+            width: 250px;
+            height: 250px;
             border: 3px solid #fff;
             border-radius: 15px;
             z-index: 10;
@@ -235,13 +235,6 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>RetailAR</h1>
-            <p>Scan QR codes and products with AR technology</p>
-            <div id="mobile-instructions" class="mobile-only" style="background: rgba(255,193,7,0.9); padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 0.9rem; display: none;">
-                📱 <strong>Mobile Users:</strong> Please allow camera access when prompted for AR functionality to work.
-            </div>
-        </div>
         
         <div class="scanner-container">
             <video id="qr-video" autoplay muted playsinline></video>
@@ -253,10 +246,7 @@
         </div>
         
         <div class="controls">
-            <button class="btn" id="start-qr-scan">Start QR Scan</button>
-            <button class="btn" id="start-product-scan">Scan Products</button>
-            <button class="btn" id="stop-scan">Stop</button>
-            <button class="btn" onclick="mobileDebug()" style="background: orange; border-color: orange;">Debug Video</button>
+            <button class="btn" onclick="showOptionsAndLogs()" style="background: #667eea; border-color: #667eea;">Options & Logs</button>
         </div>
         
         <canvas id="ar-canvas" class="hidden"></canvas>
@@ -268,12 +258,6 @@
         </div>
         
         <div id="detection-stats" class="detection-stats hidden"></div>
-        
-        <div class="method-switcher">
-            <button class="method-btn" onclick="switchDetectionMethod('simple')">Simple</button>
-            <button class="method-btn active" onclick="switchDetectionMethod('template')">Template</button>
-            <button class="method-btn" onclick="switchDetectionMethod('ml')" disabled>ML (Coming Soon)</button>
-        </div>
     </div>
 
     <script>
@@ -285,90 +269,110 @@
             }
         }
         
-        // Immediate mobile debug function - always available
-        function mobileDebug() {
+        // Options and Logs popup - replaces debug function
+        function showOptionsAndLogs() {
             try {
                 const video = document.getElementById('qr-video');
                 
-                // Create or update debug overlay
-                let debugOverlay = document.getElementById('mobile-debug-overlay');
-                if (debugOverlay) {
-                    debugOverlay.remove();
+                // Create or update options overlay
+                let optionsOverlay = document.getElementById('options-logs-overlay');
+                if (optionsOverlay) {
+                    optionsOverlay.remove();
                 }
                 
-                debugOverlay = document.createElement('div');
-                debugOverlay.id = 'mobile-debug-overlay';
-                debugOverlay.style.cssText = `
+                optionsOverlay = document.createElement('div');
+                optionsOverlay.id = 'options-logs-overlay';
+                optionsOverlay.style.cssText = `
                     position: fixed;
                     top: 10px;
                     left: 10px;
                     right: 10px;
                     bottom: 10px;
                     background: rgba(0,0,0,0.95);
-                    color: #00ff00;
+                    color: white;
                     padding: 15px;
-                    font-family: monospace;
+                    font-family: Arial, sans-serif;
                     font-size: 14px;
                     z-index: 20000;
                     border-radius: 10px;
                     overflow-y: auto;
-                    border: 2px solid #00ff00;
+                    border: 2px solid #667eea;
+                    display: flex;
+                    flex-direction: column;
                 `;
                 
                 const styles = video ? getComputedStyle(video) : null;
                 const hasMediaDevices = !!navigator.mediaDevices;
                 const isHTTPS = location.protocol === 'https:';
                 
-                debugOverlay.innerHTML = `
+                optionsOverlay.innerHTML = `
                     <div style="text-align: center; margin-bottom: 20px;">
-                        <h2 style="color: #00ff00; margin-bottom: 10px;">📱 MOBILE DEBUG</h2>
+                        <h2 style="color: #667eea; margin-bottom: 15px;">⚙️ OPTIONS & LOGS</h2>
                         <button onclick="this.parentElement.parentElement.remove()" style="background: red; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer;">Close</button>
                     </div>
                     
-                    <div style="text-align: left; line-height: 1.6;">
-                        <strong>=== BASIC INFO ===</strong><br>
-                        Video element found: ${video ? '✅ YES' : '❌ NO'}<br>
-                        Browser: ${/^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? 'Safari' : /edg/i.test(navigator.userAgent) ? 'Edge' : /firefox/i.test(navigator.userAgent) ? 'Firefox' : 'Chrome/Other'}<br>
-                        UserAgent: ${navigator.userAgent.substring(0, 60)}...<br>
-                        Screen: ${screen.width}x${screen.height}<br>
-                        Viewport: ${window.innerWidth}x${window.innerHeight}<br>
-                        <br>
+                    <!-- OPTIONS SECTION (TOP) -->
+                    <div style="background: rgba(102, 126, 234, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h3 style="color: #667eea; margin-bottom: 15px;">📱 Controls</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="startQRScan()" style="background: #28a745; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px;">Start QR Scan</button>
+                            <button onclick="startProductScan()" style="background: #007bff; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px;">Scan Products</button>
+                            <button onclick="stopScan()" style="background: #dc3545; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px;">Stop Scan</button>
+                            <button onclick="closeProductInfo()" style="background: #6c757d; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 14px;">Close Product Info</button>
+                        </div>
                         
-                        <strong>=== PERMISSIONS ===</strong><br>
-                        HTTPS: ${isHTTPS ? '✅ YES' : '❌ NO'}<br>
-                        MediaDevices: ${hasMediaDevices ? '✅ YES' : '❌ NO'}<br>
-                        <br>
+                        <h4 style="color: #667eea; margin-bottom: 10px;">🔍 Detection Method</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="switchDetectionMethod('simple')" style="background: #ffc107; color: black; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px;">Simple</button>
+                            <button onclick="switchDetectionMethod('template')" style="background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px;">Template</button>
+                        </div>
                         
-                        ${video ? `
-                        <strong>=== VIDEO ELEMENT ===</strong><br>
-                        Has stream: ${video.srcObject ? '✅ YES' : '❌ NO'}<br>
-                        Video size: ${video.videoWidth || 0}x${video.videoHeight || 0}<br>
-                        Element size: ${video.clientWidth || 0}x${video.clientHeight || 0}<br>
-                        Playing: ${video.paused ? '❌ PAUSED' : '✅ PLAYING'}<br>
-                        Ready state: ${video.readyState}/4<br>
-                        Current time: ${video.currentTime ? video.currentTime.toFixed(2) : 0}s<br>
-                        Muted: ${video.muted ? '✅ YES' : '❌ NO'}<br>
-                        Autoplay: ${video.autoplay ? '✅ YES' : '❌ NO'}<br>
-                        <br>
-                        
-                        <strong>=== CSS PROPERTIES ===</strong><br>
-                        Display: ${styles?.display || 'unknown'}<br>
-                        Visibility: ${styles?.visibility || 'unknown'}<br>
-                        Opacity: ${styles?.opacity || 'unknown'}<br>
-                        Position: ${styles?.position || 'unknown'}<br>
-                        Z-index: ${styles?.zIndex || 'unknown'}<br>
-                        Width: ${styles?.width || 'unknown'}<br>
-                        Height: ${styles?.height || 'unknown'}<br>
-                        ` : '<strong>❌ NO VIDEO ELEMENT FOUND</strong><br>'}
-                        
-                        <div style="margin-top: 20px; text-align: center;">
-                            <button onclick="testVideoVisibility()" style="background: blue; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 5px; cursor: pointer;">Test Video</button>
-                            <button onclick="forceVideoRed()" style="background: red; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 5px; cursor: pointer;">Force Red</button>
+                        <h4 style="color: #667eea; margin-bottom: 10px;">🧪 Debug Tools</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button onclick="testVideoVisibility()" style="background: #007bff; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px;">Test Video</button>
+                            <button onclick="forceVideoRed()" style="background: #dc3545; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px;">Force Red BG</button>
+                        </div>
+                    </div>
+                    
+                    <!-- LOGS SECTION (BOTTOM) -->
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; flex-grow: 1; font-family: monospace; font-size: 12px; line-height: 1.4;">
+                        <h3 style="color: #00ff00; margin-bottom: 15px;">📊 System Info</h3>
+                        <div style="color: #00ff00;">
+                            <strong>=== BASIC INFO ===</strong><br>
+                            Video element: ${video ? '✅ Found' : '❌ Not Found'}<br>
+                            Browser: ${/^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? 'Safari' : /edg/i.test(navigator.userAgent) ? 'Edge' : /firefox/i.test(navigator.userAgent) ? 'Firefox' : 'Chrome/Other'}<br>
+                            Screen: ${screen.width}×${screen.height}<br>
+                            Viewport: ${window.innerWidth}×${window.innerHeight}<br>
+                            <br>
+                            
+                            <strong>=== PERMISSIONS ===</strong><br>
+                            HTTPS: ${isHTTPS ? '✅ Enabled' : '❌ Disabled'}<br>
+                            MediaDevices: ${hasMediaDevices ? '✅ Available' : '❌ Not Available'}<br>
+                            <br>
+                            
+                            ${video ? `
+                            <strong>=== VIDEO STATUS ===</strong><br>
+                            Stream: ${video.srcObject ? '✅ Active' : '❌ No Stream'}<br>
+                            Resolution: ${video.videoWidth || 0}×${video.videoHeight || 0}<br>
+                            Element Size: ${video.clientWidth || 0}×${video.clientHeight || 0}<br>
+                            State: ${video.paused ? '⏸️ Paused' : '▶️ Playing'}<br>
+                            Ready: ${video.readyState}/4<br>
+                            Time: ${video.currentTime ? video.currentTime.toFixed(2) : 0}s<br>
+                            Muted: ${video.muted ? '🔇 Yes' : '🔊 No'}<br>
+                            <br>
+                            
+                            <strong>=== CSS STATUS ===</strong><br>
+                            Display: ${styles?.display || 'unknown'}<br>
+                            Visibility: ${styles?.visibility || 'unknown'}<br>
+                            Opacity: ${styles?.opacity || 'unknown'}<br>
+                            Position: ${styles?.position || 'unknown'}<br>
+                            Z-index: ${styles?.zIndex || 'unknown'}<br>
+                            ` : '<strong>❌ VIDEO ELEMENT NOT FOUND</strong><br>'}
                         </div>
                     </div>
                 `;
                 
-                document.body.appendChild(debugOverlay);
+                document.body.appendChild(optionsOverlay);
                 
             } catch (error) {
                 alert('Debug error: ' + error.message);
@@ -405,6 +409,52 @@
                 alert('Video forced to red background');
             } else {
                 alert('No video element found');
+            }
+        }
+        
+        // Global functions for option buttons
+        function startQRScan() {
+            if (window.retailAR) {
+                window.retailAR.startQRScan();
+            } else {
+                alert('RetailAR not loaded yet');
+            }
+        }
+        
+        function startProductScan() {
+            if (window.retailAR) {
+                window.retailAR.startProductScan();
+            } else {
+                alert('RetailAR not loaded yet');
+            }
+        }
+        
+        function stopScan() {
+            if (window.retailAR) {
+                window.retailAR.stopScan();
+            } else {
+                alert('RetailAR not loaded yet');
+            }
+        }
+        
+        function closeProductInfo() {
+            if (window.closeProductInfo) {
+                window.closeProductInfo();
+            } else {
+                const productInfo = document.getElementById('product-info');
+                if (productInfo) {
+                    productInfo.classList.add('hidden');
+                }
+            }
+        }
+        
+        function switchDetectionMethod(method) {
+            if (window.switchDetectionMethod) {
+                window.switchDetectionMethod(method);
+            } else if (window.retailAR) {
+                window.retailAR.switchDetectionMethod(method);
+            } else {
+                alert('Detection system not loaded yet');
             }
         }
     </script>
