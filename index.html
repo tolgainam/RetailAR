@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailAR - Product Scanner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #qr-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            z-index: 10;
+        }
+        
+        .scanner-overlay::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        #ar-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            pointer-events: auto;
+            background: transparent;
+        }
+        
+        .product-info {
+            position: fixed;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            z-index: 1001;
+            max-width: 280px;
+            min-width: 250px;
+        }
+        
+        .product-info h2 {
+            margin-bottom: 10px;
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+        
+        .product-info p {
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+        
+        #product-details {
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        #product-details div {
+            margin-bottom: 5px;
+        }
+        
+        .detection-stats {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            z-index: 1001;
+        }
+        
+        .method-switcher {
+            position: absolute;
+            bottom: 100px;
+            left: 20px;
+            z-index: 1001;
+        }
+        
+        .method-btn {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid white;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .method-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .method-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RetailAR</h1>
+            <p>Scan QR codes and products with AR technology</p>
+        </div>
+        
+        <div class="scanner-container">
+            <video id="qr-video" autoplay muted playsinline></video>
+            <div class="scanner-overlay"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="start-qr-scan">Start QR Scan</button>
+            <button class="btn" id="start-product-scan">Scan Products</button>
+            <button class="btn" id="stop-scan">Stop</button>
+        </div>
+        
+        <canvas id="ar-canvas" class="hidden"></canvas>
+        <div id="product-info" class="product-info hidden">
+            <h2 id="product-title">Product Name</h2>
+            <p id="product-description">Product description will appear here</p>
+            <div id="product-details"></div>
+            <button class="btn" onclick="closeProductInfo()" style="margin-top: 10px; font-size: 0.8rem; padding: 8px 16px;">Close</button>
+        </div>
+        
+        <div id="detection-stats" class="detection-stats hidden"></div>
+        
+        <div class="method-switcher">
+            <button class="method-btn" onclick="switchDetectionMethod('simple')">Simple</button>
+            <button class="method-btn active" onclick="switchDetectionMethod('template')">Template</button>
+            <button class="method-btn" onclick="switchDetectionMethod('ml')" disabled>ML (Coming Soon)</button>
+        </div>
+    </div>
+
+    <script>
+        // Global OpenCV ready callback
+        function onOpenCvReady() {
+            console.log('✅ OpenCV.js is ready for template matching');
+            if (window.retailAR) {
+                window.retailAR.onOpenCVReady();
+            }
+        }
+    </script>
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+    
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

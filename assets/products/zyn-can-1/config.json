@@ -1,0 +1,712 @@
+{
+  "id": "zyn-can-1",
+  "name": "ZYN Apple Mint",
+  "type": "cylindrical",
+  "detection": {
+    "method": "template",
+    "confidence_threshold": 0.35,
+    "reference_images": [
+      {
+        "id": "front_label",
+        "path": "reference-images/front.png",
+        "weight": 1.0,
+        "description": "Main front label view"
+      },
+      {
+        "id": "side_profile",
+        "path": "reference-images/side.png",
+        "weight": 0.8,
+        "description": "Side cylindrical profile"
+      },
+      {
+        "id": "angled_view",
+        "path": "reference-images/angle_30.png",
+        "weight": 0.9,
+        "description": "30-degree angle view"
+      },
+      {
+        "id": "angle_view2",
+        "path": "reference-images/angle.png",
+        "weight": 0.8,
+        "description": "Alternative angle view"
+      },
+      {
+        "id": "logo_closeup",
+        "path": "reference-images/logo.png",
+        "weight": 0.7,
+        "description": "ZYN logo closeup"
+      },
+      {
+        "id": "front_bright",
+        "path": "reference-images/front_bright.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_bright"
+      },
+      {
+        "id": "front_dim",
+        "path": "reference-images/front_dim.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_dim"
+      },
+      {
+        "id": "front_contrast",
+        "path": "reference-images/front_contrast.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_contrast"
+      },
+      {
+        "id": "front_low_contrast",
+        "path": "reference-images/front_low_contrast.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_low_contrast"
+      },
+      {
+        "id": "front_rotneg15",
+        "path": "reference-images/front_rotneg15.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rotneg15"
+      },
+      {
+        "id": "front_rotneg10",
+        "path": "reference-images/front_rotneg10.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rotneg10"
+      },
+      {
+        "id": "front_rotneg05",
+        "path": "reference-images/front_rotneg05.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rotneg05"
+      },
+      {
+        "id": "front_rot+05",
+        "path": "reference-images/front_rot+05.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rot+05"
+      },
+      {
+        "id": "front_rot+10",
+        "path": "reference-images/front_rot+10.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rot+10"
+      },
+      {
+        "id": "front_rot+15",
+        "path": "reference-images/front_rot+15.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_rot+15"
+      },
+      {
+        "id": "front_scale80",
+        "path": "reference-images/front_scale80.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_scale80"
+      },
+      {
+        "id": "front_scale90",
+        "path": "reference-images/front_scale90.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_scale90"
+      },
+      {
+        "id": "front_scale110",
+        "path": "reference-images/front_scale110.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_scale110"
+      },
+      {
+        "id": "front_scale120",
+        "path": "reference-images/front_scale120.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_scale120"
+      },
+      {
+        "id": "front_blur",
+        "path": "reference-images/front_blur.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_blur"
+      },
+      {
+        "id": "front_sharp",
+        "path": "reference-images/front_sharp.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_sharp"
+      },
+      {
+        "id": "front_desat",
+        "path": "reference-images/front_desat.png",
+        "weight": 0.7,
+        "description": "Generated variation: front_desat"
+      },
+      {
+        "id": "front_sat",
+        "path": "reference-images/front_sat.png",
+        "weight": 0.8,
+        "description": "Generated variation: front_sat"
+      },
+      {
+        "id": "side_bright",
+        "path": "reference-images/side_bright.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_bright"
+      },
+      {
+        "id": "side_dim",
+        "path": "reference-images/side_dim.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_dim"
+      },
+      {
+        "id": "side_contrast",
+        "path": "reference-images/side_contrast.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_contrast"
+      },
+      {
+        "id": "side_low_contrast",
+        "path": "reference-images/side_low_contrast.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_low_contrast"
+      },
+      {
+        "id": "side_rotneg15",
+        "path": "reference-images/side_rotneg15.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rotneg15"
+      },
+      {
+        "id": "side_rotneg10",
+        "path": "reference-images/side_rotneg10.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rotneg10"
+      },
+      {
+        "id": "side_rotneg05",
+        "path": "reference-images/side_rotneg05.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rotneg05"
+      },
+      {
+        "id": "side_rot+05",
+        "path": "reference-images/side_rot+05.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rot+05"
+      },
+      {
+        "id": "side_rot+10",
+        "path": "reference-images/side_rot+10.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rot+10"
+      },
+      {
+        "id": "side_rot+15",
+        "path": "reference-images/side_rot+15.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_rot+15"
+      },
+      {
+        "id": "side_scale80",
+        "path": "reference-images/side_scale80.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_scale80"
+      },
+      {
+        "id": "side_scale90",
+        "path": "reference-images/side_scale90.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_scale90"
+      },
+      {
+        "id": "side_scale110",
+        "path": "reference-images/side_scale110.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_scale110"
+      },
+      {
+        "id": "side_scale120",
+        "path": "reference-images/side_scale120.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_scale120"
+      },
+      {
+        "id": "side_blur",
+        "path": "reference-images/side_blur.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_blur"
+      },
+      {
+        "id": "side_sharp",
+        "path": "reference-images/side_sharp.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_sharp"
+      },
+      {
+        "id": "side_desat",
+        "path": "reference-images/side_desat.png",
+        "weight": 0.7,
+        "description": "Generated variation: side_desat"
+      },
+      {
+        "id": "side_sat",
+        "path": "reference-images/side_sat.png",
+        "weight": 0.8,
+        "description": "Generated variation: side_sat"
+      },
+      {
+        "id": "logo_bright",
+        "path": "reference-images/logo_bright.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_bright"
+      },
+      {
+        "id": "logo_dim",
+        "path": "reference-images/logo_dim.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_dim"
+      },
+      {
+        "id": "logo_contrast",
+        "path": "reference-images/logo_contrast.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_contrast"
+      },
+      {
+        "id": "logo_low_contrast",
+        "path": "reference-images/logo_low_contrast.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_low_contrast"
+      },
+      {
+        "id": "logo_rotneg15",
+        "path": "reference-images/logo_rotneg15.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rotneg15"
+      },
+      {
+        "id": "logo_rotneg10",
+        "path": "reference-images/logo_rotneg10.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rotneg10"
+      },
+      {
+        "id": "logo_rotneg05",
+        "path": "reference-images/logo_rotneg05.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rotneg05"
+      },
+      {
+        "id": "logo_rot+05",
+        "path": "reference-images/logo_rot+05.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rot+05"
+      },
+      {
+        "id": "logo_rot+10",
+        "path": "reference-images/logo_rot+10.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rot+10"
+      },
+      {
+        "id": "logo_rot+15",
+        "path": "reference-images/logo_rot+15.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_rot+15"
+      },
+      {
+        "id": "logo_scale80",
+        "path": "reference-images/logo_scale80.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_scale80"
+      },
+      {
+        "id": "logo_scale90",
+        "path": "reference-images/logo_scale90.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_scale90"
+      },
+      {
+        "id": "logo_scale110",
+        "path": "reference-images/logo_scale110.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_scale110"
+      },
+      {
+        "id": "logo_scale120",
+        "path": "reference-images/logo_scale120.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_scale120"
+      },
+      {
+        "id": "logo_blur",
+        "path": "reference-images/logo_blur.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_blur"
+      },
+      {
+        "id": "logo_sharp",
+        "path": "reference-images/logo_sharp.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_sharp"
+      },
+      {
+        "id": "logo_desat",
+        "path": "reference-images/logo_desat.png",
+        "weight": 0.7,
+        "description": "Generated variation: logo_desat"
+      },
+      {
+        "id": "logo_sat",
+        "path": "reference-images/logo_sat.png",
+        "weight": 0.8,
+        "description": "Generated variation: logo_sat"
+      },
+      {
+        "id": "angle_30_bright",
+        "path": "reference-images/angle_30_bright.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_bright"
+      },
+      {
+        "id": "angle_30_dim",
+        "path": "reference-images/angle_30_dim.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_dim"
+      },
+      {
+        "id": "angle_30_contrast",
+        "path": "reference-images/angle_30_contrast.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_contrast"
+      },
+      {
+        "id": "angle_30_low_contrast",
+        "path": "reference-images/angle_30_low_contrast.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_low_contrast"
+      },
+      {
+        "id": "angle_30_rotneg15",
+        "path": "reference-images/angle_30_rotneg15.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rotneg15"
+      },
+      {
+        "id": "angle_30_rotneg10",
+        "path": "reference-images/angle_30_rotneg10.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rotneg10"
+      },
+      {
+        "id": "angle_30_rotneg05",
+        "path": "reference-images/angle_30_rotneg05.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rotneg05"
+      },
+      {
+        "id": "angle_30_rot+05",
+        "path": "reference-images/angle_30_rot+05.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rot+05"
+      },
+      {
+        "id": "angle_30_rot+10",
+        "path": "reference-images/angle_30_rot+10.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rot+10"
+      },
+      {
+        "id": "angle_30_rot+15",
+        "path": "reference-images/angle_30_rot+15.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_rot+15"
+      },
+      {
+        "id": "angle_30_scale80",
+        "path": "reference-images/angle_30_scale80.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_scale80"
+      },
+      {
+        "id": "angle_30_scale90",
+        "path": "reference-images/angle_30_scale90.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_scale90"
+      },
+      {
+        "id": "angle_30_scale110",
+        "path": "reference-images/angle_30_scale110.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_scale110"
+      },
+      {
+        "id": "angle_30_scale120",
+        "path": "reference-images/angle_30_scale120.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_scale120"
+      },
+      {
+        "id": "angle_30_blur",
+        "path": "reference-images/angle_30_blur.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_blur"
+      },
+      {
+        "id": "angle_30_sharp",
+        "path": "reference-images/angle_30_sharp.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_sharp"
+      },
+      {
+        "id": "angle_30_desat",
+        "path": "reference-images/angle_30_desat.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_30_desat"
+      },
+      {
+        "id": "angle_30_sat",
+        "path": "reference-images/angle_30_sat.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_30_sat"
+      },
+      {
+        "id": "angle_bright",
+        "path": "reference-images/angle_bright.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_bright"
+      },
+      {
+        "id": "angle_dim",
+        "path": "reference-images/angle_dim.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_dim"
+      },
+      {
+        "id": "angle_contrast",
+        "path": "reference-images/angle_contrast.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_contrast"
+      },
+      {
+        "id": "angle_low_contrast",
+        "path": "reference-images/angle_low_contrast.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_low_contrast"
+      },
+      {
+        "id": "angle_rotneg15",
+        "path": "reference-images/angle_rotneg15.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rotneg15"
+      },
+      {
+        "id": "angle_rotneg10",
+        "path": "reference-images/angle_rotneg10.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rotneg10"
+      },
+      {
+        "id": "angle_rotneg05",
+        "path": "reference-images/angle_rotneg05.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rotneg05"
+      },
+      {
+        "id": "angle_rot+05",
+        "path": "reference-images/angle_rot+05.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rot+05"
+      },
+      {
+        "id": "angle_rot+10",
+        "path": "reference-images/angle_rot+10.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rot+10"
+      },
+      {
+        "id": "angle_rot+15",
+        "path": "reference-images/angle_rot+15.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_rot+15"
+      },
+      {
+        "id": "angle_scale80",
+        "path": "reference-images/angle_scale80.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_scale80"
+      },
+      {
+        "id": "angle_scale90",
+        "path": "reference-images/angle_scale90.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_scale90"
+      },
+      {
+        "id": "angle_scale110",
+        "path": "reference-images/angle_scale110.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_scale110"
+      },
+      {
+        "id": "angle_scale120",
+        "path": "reference-images/angle_scale120.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_scale120"
+      },
+      {
+        "id": "angle_blur",
+        "path": "reference-images/angle_blur.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_blur"
+      },
+      {
+        "id": "angle_sharp",
+        "path": "reference-images/angle_sharp.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_sharp"
+      },
+      {
+        "id": "angle_desat",
+        "path": "reference-images/angle_desat.png",
+        "weight": 0.7,
+        "description": "Generated variation: angle_desat"
+      },
+      {
+        "id": "angle_sat",
+        "path": "reference-images/angle_sat.png",
+        "weight": 0.8,
+        "description": "Generated variation: angle_sat"
+      }
+    ],
+    "ml_model": "models/zyn-can-1.json",
+    "features": [
+      "logo",
+      "text",
+      "color_scheme",
+      "cylindrical_shape"
+    ]
+  },
+  "visual": {
+    "3d_model": "models/zyn-can-1.glb",
+    "scale": [
+      1.5,
+      1.5,
+      1.5
+    ],
+    "position_offset": [
+      0,
+      0,
+      0
+    ],
+    "rotation_offset": [
+      0,
+      0,
+      0
+    ],
+    "material_overrides": {}
+  },
+  "animations": {
+    "idle": {
+      "type": "rotate_float",
+      "rotation_speed": 0.5,
+      "float_amplitude": 0.015,
+      "float_speed": 2.0
+    },
+    "flavor_effect": {
+      "type": "disabled",
+      "system": "none",
+      "color": "#00FFFF",
+      "intensity": 0,
+      "duration": 0,
+      "particle_count": 0,
+      "effect": "none"
+    },
+    "recognition": {
+      "type": "scale_pulse",
+      "from": 0.9,
+      "to": 1.1,
+      "duration": 400
+    }
+  },
+  "info_card": {
+    "title": "ZYN Apple Mint",
+    "description": "Refreshing mint flavor with a cool, crisp finish",
+    "details": {
+      "flavor": "Cool Mint",
+      "strength": "3mg",
+      "format": "Nicotine Pouches",
+      "count": "15 pouches",
+      "notes": "Fresh mint, cooling sensation"
+    },
+    "images": [
+      "product_shot.jpg",
+      "lifestyle.jpg"
+    ],
+    "colors": {
+      "primary": "#00BFFF",
+      "text": "#FFFFFF",
+      "background": "rgba(0,191,255,0.95)"
+    }
+  },
+  "interactions": {
+    "virtual_buttons": [
+      {
+        "id": "learn_more",
+        "label": "Learn More",
+        "position": [
+          -1.2,
+          0.3,
+          0
+        ],
+        "size": [
+          0.8,
+          0.3
+        ],
+        "action": {
+          "type": "url",
+          "target": "https://www.zyn.com/us/products/zyn-cool-mint/",
+          "new_window": true
+        },
+        "style": {
+          "background": "#00BFFF",
+          "text_color": "#FFFFFF",
+          "hover_color": "#1E90FF"
+        }
+      },
+      {
+        "id": "buy_now",
+        "label": "Buy Now",
+        "position": [
+          -1.2,
+          -0.1,
+          0
+        ],
+        "size": [
+          0.8,
+          0.3
+        ],
+        "action": {
+          "type": "url",
+          "target": "https://store.zyn.com/cool-mint",
+          "new_window": true
+        },
+        "style": {
+          "background": "#1E90FF",
+          "text_color": "#FFFFFF",
+          "hover_color": "#4169E1"
+        }
+      }
+    ]
+  },
+  "advanced": {
+    "tracking": {
+      "stability_threshold": 0.8,
+      "lost_tracking_timeout": 2000,
+      "multi_target": false
+    },
+    "performance": {
+      "max_detection_fps": 30,
+      "model_quality": "high",
+      "enable_occlusion": true
+    }
+  }
+}

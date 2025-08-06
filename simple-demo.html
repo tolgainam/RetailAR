@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailAR - Simple Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .header {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            z-index: 100;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #camera-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .scanner-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            border: 3px solid #fff;
+            border-radius: 15px;
+            z-index: 10;
+        }
+        
+        .scanner-overlay::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 100;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .detection-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+        }
+        
+        .ar-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: arAppear 0.5s ease-out;
+        }
+        
+        @keyframes arAppear {
+            from { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.8); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+        }
+        
+        .virtual-btn {
+            margin: 10px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .virtual-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RetailAR</h1>
+            <p>Simple Demo - Color-based Product Detection</p>
+        </div>
+        
+        <div class="status" id="status">
+            Click "Start Camera" to begin
+        </div>
+        
+        <div class="scanner-container">
+            <video id="camera-video" autoplay muted playsinline class="hidden"></video>
+            <div class="scanner-overlay hidden" id="scanner-overlay"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" id="start-camera">Start Camera</button>
+            <button class="btn" id="start-scan" disabled>Scan Products</button>
+            <button class="btn" id="stop" disabled>Stop</button>
+        </div>
+        
+        <div id="detection-info" class="detection-info hidden">
+            <h3 id="product-name">Product Detected</h3>
+            <p id="product-details">Product information</p>
+        </div>
+        
+        <div id="ar-overlay" class="ar-overlay hidden">
+            <h2 id="ar-title">Product AR View</h2>
+            <p id="ar-description">3D visualization and information</p>
+            <button class="virtual-btn" onclick="openProductUrl()">Learn More</button>
+            <button class="virtual-btn" onclick="closeAR()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        class SimpleRetailAR {
+            constructor() {
+                this.video = document.getElementById('camera-video');
+                this.status = document.getElementById('status');
+                this.isScanning = false;
+                this.detectionCanvas = document.createElement('canvas');
+                this.detectionCtx = this.detectionCanvas.getContext('2d');
+                this.detectionInterval = null;
+                
+                this.setupEventListeners();
+                this.updateStatus('Ready to start');
+            }
+            
+            setupEventListeners() {
+                document.getElementById('start-camera').addEventListener('click', () => this.startCamera());
+                document.getElementById('start-scan').addEventListener('click', () => this.startScanning());
+                document.getElementById('stop').addEventListener('click', () => this.stop());
+            }
+            
+            async startCamera() {
+                try {
+                    this.updateStatus('Requesting camera access...');
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        }
+                    });
+                    
+                    this.video.srcObject = stream;
+                    this.video.classList.remove('hidden');
+                    document.getElementById('scanner-overlay').classList.remove('hidden');
+                    
+                    document.getElementById('start-camera').disabled = true;
+                    document.getElementById('start-scan').disabled = false;
+                    
+                    this.updateStatus('Camera ready - Click "Scan Products"');
+                    
+                } catch (error) {
+                    console.error('Camera access denied:', error);
+                    this.updateStatus('Camera access denied. Please allow camera permissions.');
+                }
+            }
+            
+            startScanning() {
+                if (this.isScanning) return;
+                
+                this.isScanning = true;
+                document.getElementById('start-scan').disabled = true;
+                document.getElementById('stop').disabled = false;
+                
+                this.updateStatus('Scanning for products... Point camera at colorful objects');
+                
+                // Start detection loop
+                this.detectionInterval = setInterval(() => {
+                    this.detectProducts();
+                }, 500); // Check every 500ms
+            }
+            
+            detectProducts() {
+                if (!this.video.videoWidth || !this.video.videoHeight) return;
+                
+                // Capture frame for analysis
+                this.detectionCanvas.width = 64; // Small size for speed
+                this.detectionCanvas.height = 64;
+                
+                this.detectionCtx.drawImage(
+                    this.video, 
+                    0, 0, 
+                    this.detectionCanvas.width, 
+                    this.detectionCanvas.height
+                );
+                
+                const imageData = this.detectionCtx.getImageData(
+                    0, 0, 
+                    this.detectionCanvas.width, 
+                    this.detectionCanvas.height
+                );
+                
+                const colorProfile = this.analyzeColors(imageData);
+                const detectedProduct = this.matchProduct(colorProfile);
+                
+                if (detectedProduct) {
+                    this.showProductDetection(detectedProduct);
+                }
+            }
+            
+            analyzeColors(imageData) {
+                const data = imageData.data;
+                let rTotal = 0, gTotal = 0, bTotal = 0;
+                const pixelCount = data.length / 4;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    rTotal += data[i];
+                    gTotal += data[i + 1];
+                    bTotal += data[i + 2];
+                }
+                
+                return {
+                    r: rTotal / pixelCount,
+                    g: gTotal / pixelCount,
+                    b: bTotal / pixelCount,
+                    brightness: (rTotal + gTotal + bTotal) / (pixelCount * 3)
+                };
+            }
+            
+            matchProduct(colorProfile) {
+                const products = [
+                    {
+                        name: 'TEREA Yellow Selection',
+                        color: { r: 255, g: 215, b: 0 },
+                        description: 'Rich tobacco blend with nutty undertones',
+                        url: 'https://www.iqos.com/us/en/tobacco-sticks/terea.html'
+                    },
+                    {
+                        name: 'TEREA Sienna',
+                        color: { r: 139, g: 69, b: 19 },
+                        description: 'Intensely aromatic with woodsy taste notes',
+                        url: 'https://www.iqos.com/us/en/tobacco-sticks/terea.html'
+                    },
+                    {
+                        name: 'ZYN Cool Mint',
+                        color: { r: 0, g: 191, b: 255 },
+                        description: 'Refreshing mint flavor with cool finish',
+                        url: 'https://www.zyn.com/'
+                    },
+                    {
+                        name: 'ZYN Citrus',
+                        color: { r: 255, g: 165, b: 0 },
+                        description: 'Bright citrus blend with zesty notes',
+                        url: 'https://www.zyn.com/'
+                    }
+                ];
+                
+                let bestMatch = null;
+                let lowestDistance = Infinity;
+                
+                for (const product of products) {
+                    const distance = Math.sqrt(
+                        Math.pow(colorProfile.r - product.color.r, 2) +
+                        Math.pow(colorProfile.g - product.color.g, 2) +
+                        Math.pow(colorProfile.b - product.color.b, 2)
+                    );
+                    
+                    if (distance < lowestDistance && distance < 100) { // Threshold
+                        lowestDistance = distance;
+                        bestMatch = product;
+                    }
+                }
+                
+                return bestMatch;
+            }
+            
+            showProductDetection(product) {
+                // Stop scanning temporarily
+                clearInterval(this.detectionInterval);
+                this.isScanning = false;
+                
+                // Show detection info
+                document.getElementById('product-name').textContent = product.name;
+                document.getElementById('product-details').textContent = product.description;
+                document.getElementById('detection-info').classList.remove('hidden');
+                
+                // Show AR overlay
+                document.getElementById('ar-title').textContent = product.name;
+                document.getElementById('ar-description').textContent = product.description;
+                document.getElementById('ar-overlay').classList.remove('hidden');
+                
+                // Store product URL for virtual button
+                window.currentProductUrl = product.url;
+                
+                this.updateStatus(`Detected: ${product.name}`);
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    this.closeAR();
+                }, 5000);
+            }
+            
+            closeAR() {
+                document.getElementById('detection-info').classList.add('hidden');
+                document.getElementById('ar-overlay').classList.add('hidden');
+                
+                // Restart scanning if still active
+                if (document.getElementById('stop').disabled === false) {
+                    setTimeout(() => {
+                        this.startScanning();
+                    }, 1000);
+                }
+            }
+            
+            stop() {
+                this.isScanning = false;
+                
+                if (this.detectionInterval) {
+                    clearInterval(this.detectionInterval);
+                    this.detectionInterval = null;
+                }
+                
+                if (this.video.srcObject) {
+                    const tracks = this.video.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                    this.video.srcObject = null;
+                }
+                
+                this.video.classList.add('hidden');
+                document.getElementById('scanner-overlay').classList.add('hidden');
+                document.getElementById('detection-info').classList.add('hidden');
+                document.getElementById('ar-overlay').classList.add('hidden');
+                
+                document.getElementById('start-camera').disabled = false;
+                document.getElementById('start-scan').disabled = true;
+                document.getElementById('stop').disabled = true;
+                
+                this.updateStatus('Stopped - Click "Start Camera" to begin again');
+            }
+            
+            updateStatus(message) {
+                this.status.textContent = message;
+                console.log('Status:', message);
+            }
+        }
+        
+        // Global functions for virtual buttons
+        function openProductUrl() {
+            if (window.currentProductUrl) {
+                window.open(window.currentProductUrl, '_blank');
+            }
+        }
+        
+        function closeAR() {
+            if (window.retailAR) {
+                window.retailAR.closeAR();
+            }
+        }
+        
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.retailAR = new SimpleRetailAR();
+            console.log('RetailAR Simple Demo initialized');
+        });
+    </script>
+</body>
+</html>
