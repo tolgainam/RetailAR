@@ -89,24 +89,68 @@ class RetailAR {
         window.switchDetectionMethod = (method) => this.switchDetectionMethod(method);
         window.getDetectionStats = () => this.productDetector?.getStats();
         
-        // Debug function for mobile
+        // Debug function for mobile - shows info on screen
         window.debugVideo = () => {
             const video = document.getElementById('qr-video');
-            console.log('=== VIDEO DEBUG INFO ===');
-            console.log('Video element:', video);
-            console.log('Video source:', video.srcObject);
-            console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-            console.log('Video playing:', !video.paused);
-            console.log('Video ready state:', video.readyState);
-            console.log('Video current time:', video.currentTime);
-            console.log('Video muted:', video.muted);
-            console.log('Video autoplay:', video.autoplay);
-            console.log('Video element visible:', video.clientWidth, 'x', video.clientHeight);
-            console.log('Video style display:', getComputedStyle(video).display);
-            console.log('Video style visibility:', getComputedStyle(video).visibility);
-            console.log('Video style opacity:', getComputedStyle(video).opacity);
-            console.log('Video z-index:', getComputedStyle(video).zIndex);
-            console.log('======================');
+            const styles = getComputedStyle(video);
+            
+            // Create debug info overlay
+            let debugOverlay = document.getElementById('debug-overlay');
+            if (!debugOverlay) {
+                debugOverlay = document.createElement('div');
+                debugOverlay.id = 'debug-overlay';
+                debugOverlay.style.cssText = `
+                    position: fixed;
+                    top: 10px;
+                    left: 10px;
+                    right: 10px;
+                    background: rgba(0,0,0,0.9);
+                    color: #00ff00;
+                    padding: 10px;
+                    font-family: monospace;
+                    font-size: 12px;
+                    z-index: 10000;
+                    border-radius: 5px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                `;
+                document.body.appendChild(debugOverlay);
+                
+                // Add close button
+                const closeBtn = document.createElement('button');
+                closeBtn.textContent = 'Close Debug';
+                closeBtn.style.cssText = 'position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; padding: 3px 6px; font-size: 10px; cursor: pointer;';
+                closeBtn.onclick = () => debugOverlay.remove();
+                debugOverlay.appendChild(closeBtn);
+            }
+            
+            debugOverlay.innerHTML = `
+                <button onclick="this.parentElement.remove()" style="position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; padding: 3px 6px; font-size: 10px; cursor: pointer;">Close Debug</button>
+                <div style="margin-top: 20px;">
+                    <strong>=== VIDEO DEBUG INFO ===</strong><br>
+                    Video exists: ${!!video}<br>
+                    Video source: ${video.srcObject ? 'YES' : 'NO'}<br>
+                    Video dimensions: ${video.videoWidth} x ${video.videoHeight}<br>
+                    Video playing: ${!video.paused}<br>
+                    Video ready state: ${video.readyState}<br>
+                    Video current time: ${video.currentTime.toFixed(2)}s<br>
+                    Video muted: ${video.muted}<br>
+                    Video autoplay: ${video.autoplay}<br>
+                    Element size: ${video.clientWidth} x ${video.clientHeight}<br>
+                    Display: ${styles.display}<br>
+                    Visibility: ${styles.visibility}<br>
+                    Opacity: ${styles.opacity}<br>
+                    Z-index: ${styles.zIndex}<br>
+                    Position: ${styles.position}<br>
+                    Top: ${styles.top}<br>
+                    Left: ${styles.left}<br>
+                    <br><strong>Permissions:</strong><br>
+                    getUserMedia: ${navigator.mediaDevices ? 'YES' : 'NO'}<br>
+                    HTTPS: ${location.protocol === 'https:' ? 'YES' : 'NO'}<br>
+                    <br><button onclick="showTestPattern()" style="background: blue; color: white; border: none; padding: 5px 10px; margin: 5px; cursor: pointer;">Show Test Pattern</button>
+                    <button onclick="forceVideoVisible()" style="background: green; color: white; border: none; padding: 5px 10px; margin: 5px; cursor: pointer;">Force Visible</button>
+                </div>
+            `;
         };
         
         // Test pattern function 
@@ -115,6 +159,25 @@ class RetailAR {
             video.style.background = 'linear-gradient(45deg, red 25%, blue 25%, blue 50%, red 50%, red 75%, blue 75%)';
             video.style.backgroundSize = '50px 50px';
             console.log('Test pattern applied to video element');
+        };
+        
+        // Force video visible function
+        window.forceVideoVisible = () => {
+            const video = document.getElementById('qr-video');
+            video.style.cssText += `
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                z-index: 999 !important;
+                object-fit: cover !important;
+                background: red !important;
+            `;
+            console.log('Video forced to be visible');
         };
     }
     
