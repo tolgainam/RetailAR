@@ -328,7 +328,8 @@
                     <div style="text-align: left; line-height: 1.6;">
                         <strong>=== BASIC INFO ===</strong><br>
                         Video element found: ${video ? '✅ YES' : '❌ NO'}<br>
-                        UserAgent: ${navigator.userAgent.substring(0, 50)}...<br>
+                        Browser: ${/^((?!chrome|android).)*safari/i.test(navigator.userAgent) ? 'Safari' : /edg/i.test(navigator.userAgent) ? 'Edge' : /firefox/i.test(navigator.userAgent) ? 'Firefox' : 'Chrome/Other'}<br>
+                        UserAgent: ${navigator.userAgent.substring(0, 60)}...<br>
                         Screen: ${screen.width}x${screen.height}<br>
                         Viewport: ${window.innerWidth}x${window.innerHeight}<br>
                         <br>

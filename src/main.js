@@ -185,25 +185,55 @@ class RetailAR {
         try {
             const video = document.getElementById('qr-video');
             
-            // Enhanced mobile camera constraints
-            const constraints = {
-                video: { 
-                    facingMode: { exact: 'environment' }, // Prefer back camera
-                    width: { 
-                        min: 640,
-                        ideal: 1280,
-                        max: 1920 
-                    },
-                    height: { 
-                        min: 480,
-                        ideal: 720,
-                        max: 1080 
-                    }
-                }
-            };
+            // Detect browser for compatibility
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isEdge = /edg/i.test(navigator.userAgent);
+            const isFirefox = /firefox/i.test(navigator.userAgent);
             
-            // Check camera permissions first
-            if (navigator.permissions) {
+            console.log(`📷 Browser detected: ${isSafari ? 'Safari' : isEdge ? 'Edge' : isFirefox ? 'Firefox' : 'Chrome/Other'}`);
+            
+            // Browser-specific camera constraints
+            let constraints;
+            
+            if (isSafari) {
+                // Safari has issues with exact facingMode and complex constraints
+                constraints = {
+                    video: {
+                        facingMode: 'environment', // No exact constraint for Safari
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+            } else if (isEdge) {
+                // Edge sometimes has issues with min/max constraints
+                constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+            } else {
+                // Chrome and other modern browsers
+                constraints = {
+                    video: { 
+                        facingMode: { exact: 'environment' },
+                        width: { 
+                            min: 640,
+                            ideal: 1280,
+                            max: 1920 
+                        },
+                        height: { 
+                            min: 480,
+                            ideal: 720,
+                            max: 1080 
+                        }
+                    }
+                };
+            }
+            
+            // Check camera permissions first (skip for Safari which doesn't support permissions API well)
+            if (navigator.permissions && !isSafari) {
                 try {
                     const permission = await navigator.permissions.query({ name: 'camera' });
                     console.log('Camera permission status:', permission.state);
@@ -216,66 +246,115 @@ class RetailAR {
                 }
             }
             
-            console.log('📷 Requesting camera access...');
+            console.log('📷 Requesting camera access with constraints:', constraints);
             
-            // Try exact environment camera first
+            // Multiple fallback attempts with progressively simpler constraints
             let stream;
-            try {
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
-            } catch (err) {
-                console.warn('Failed with exact environment camera, trying fallback:', err);
-                // Fallback: try without exact constraint
-                constraints.video.facingMode = 'environment';
+            const fallbacks = [
+                constraints, // Browser-specific constraints
+                {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                },
+                {
+                    video: {
+                        facingMode: 'environment'
+                    }
+                },
+                {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                },
+                {
+                    video: true // Most basic constraint
+                }
+            ];
+            
+            for (let i = 0; i < fallbacks.length; i++) {
                 try {
-                    stream = await navigator.mediaDevices.getUserMedia(constraints);
-                } catch (err2) {
-                    console.warn('Failed with environment preference, trying any camera:', err2);
-                    // Final fallback: any camera
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        }
-                    });
+                    console.log(`📷 Trying camera constraint ${i + 1}/${fallbacks.length}:`, fallbacks[i]);
+                    stream = await navigator.mediaDevices.getUserMedia(fallbacks[i]);
+                    console.log(`📷 Success with constraint ${i + 1}`);
+                    break;
+                } catch (err) {
+                    console.warn(`Failed with constraint ${i + 1}:`, err.message);
+                    if (i === fallbacks.length - 1) {
+                        throw err; // Re-throw the last error if all fallbacks fail
+                    }
                 }
             }
             
             video.srcObject = stream;
             
-            // Ensure video plays on mobile
-            video.setAttribute('autoplay', true);
-            video.setAttribute('playsinline', true);
-            video.setAttribute('muted', true);
+            // Browser-specific video element configuration
+            if (isSafari) {
+                // Safari needs specific attributes
+                video.setAttribute('webkit-playsinline', true);
+                video.setAttribute('playsinline', true);
+                video.setAttribute('autoplay', true);
+                video.setAttribute('muted', true);
+                video.muted = true; // Set property as well as attribute
+                
+                // Safari sometimes needs a slight delay
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } else {
+                // Standard configuration for other browsers
+                video.setAttribute('autoplay', true);
+                video.setAttribute('playsinline', true);
+                video.setAttribute('muted', true);
+            }
             
             console.log('📷 Video element configured, waiting for metadata...');
             
-            // Wait for video to be ready
+            // Wait for video to be ready with browser-specific timeout
+            const timeout = isSafari ? 15000 : 10000; // Safari needs more time
             await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
+                const timeoutId = setTimeout(() => {
                     reject(new Error('Video metadata loading timeout'));
-                }, 10000);
+                }, timeout);
                 
                 video.addEventListener('loadedmetadata', () => {
-                    clearTimeout(timeout);
+                    clearTimeout(timeoutId);
                     console.log('📷 Video metadata loaded');
                     resolve();
                 }, { once: true });
                 
                 video.addEventListener('error', (e) => {
-                    clearTimeout(timeout);
+                    clearTimeout(timeoutId);
                     console.error('Video error:', e);
                     reject(new Error('Video loading error'));
                 }, { once: true });
+                
+                // For Safari, also listen for canplay event as backup
+                if (isSafari) {
+                    video.addEventListener('canplay', () => {
+                        clearTimeout(timeoutId);
+                        console.log('📷 Safari video can play');
+                        resolve();
+                    }, { once: true });
+                }
             });
             
-            // Force play on mobile
+            // Browser-specific play handling
             try {
-                await video.play();
-                console.log('📷 Video play started successfully');
+                if (isSafari) {
+                    // Safari often requires user interaction, so be more permissive
+                    video.muted = true;
+                    await video.play();
+                    console.log('📷 Safari video play started successfully');
+                } else {
+                    await video.play();
+                    console.log('📷 Video play started successfully');
+                }
             } catch (playError) {
                 console.warn('Video autoplay failed, showing manual start button:', playError);
                 
-                // Show manual start button for mobile
+                // Show manual start button for mobile/Safari
                 const startPrompt = document.getElementById('video-start-prompt');
                 const startButton = document.getElementById('start-video-btn');
                 
@@ -285,11 +364,31 @@ class RetailAR {
                     startButton.onclick = async () => {
                         try {
                             video.muted = true;
+                            
+                            // Safari-specific play attempt
+                            if (isSafari) {
+                                // Force a user gesture for Safari
+                                video.load(); // Reload the video
+                                await new Promise(resolve => setTimeout(resolve, 100));
+                            }
+                            
                             await video.play();
                             startPrompt.style.display = 'none';
                             console.log('📷 Video started manually');
                         } catch (manualError) {
                             console.error('Manual video start failed:', manualError);
+                            
+                            // Final fallback for Safari
+                            if (isSafari) {
+                                try {
+                                    video.currentTime = 0;
+                                    await video.play();
+                                    startPrompt.style.display = 'none';
+                                    console.log('📷 Safari video started with fallback method');
+                                } catch (safariError) {
+                                    console.error('Safari fallback failed:', safariError);
+                                }
+                            }
                         }
                     };
                 }
