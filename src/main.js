@@ -104,7 +104,17 @@ class RetailAR {
             console.log('Video element visible:', video.clientWidth, 'x', video.clientHeight);
             console.log('Video style display:', getComputedStyle(video).display);
             console.log('Video style visibility:', getComputedStyle(video).visibility);
+            console.log('Video style opacity:', getComputedStyle(video).opacity);
+            console.log('Video z-index:', getComputedStyle(video).zIndex);
             console.log('======================');
+        };
+        
+        // Test pattern function 
+        window.showTestPattern = () => {
+            const video = document.getElementById('qr-video');
+            video.style.background = 'linear-gradient(45deg, red 25%, blue 25%, blue 50%, red 50%, red 75%, blue 75%)';
+            video.style.backgroundSize = '50px 50px';
+            console.log('Test pattern applied to video element');
         };
     }
     
@@ -222,11 +232,21 @@ class RetailAR {
                 }
             }
             
+            // Add debug border to make video element visible
+            video.classList.add('debug');
+            
             console.log('📷 Camera initialized successfully');
             console.log(`Camera resolution: ${video.videoWidth}x${video.videoHeight}`);
             console.log(`Video element size: ${video.clientWidth}x${video.clientHeight}`);
             console.log(`Video playing: ${!video.paused}`);
             console.log(`Video ready state: ${video.readyState}`);
+            
+            // Force video to be visible
+            video.style.display = 'block';
+            video.style.visibility = 'visible';
+            video.style.opacity = '1';
+            
+            console.log('📷 Video forced to visible state');
         } catch (error) {
             console.error('Camera setup failed:', error);
             
