@@ -710,17 +710,176 @@
                 if (canvas) {
                     canvas.classList.remove('hidden');
                 }
+                
+                // Start detection loop
+                this.startDetectionLoop();
+            }
+            
+            startDetectionLoop() {
+                if (this.detectionInterval) return;
+                
+                console.log('🔄 Starting detection loop...');
+                this.detectionInterval = setInterval(() => {
+                    if (this.currentMode !== 'product-scanning') return;
+                    
+                    try {
+                        // Capture frame from video
+                        const video = document.getElementById('qr-video');
+                        if (video && video.videoWidth > 0) {
+                            this.detectProducts(video);
+                        }
+                    } catch (error) {
+                        console.error('Detection error:', error);
+                    }
+                }, 500); // 2 FPS detection
+            }
+            
+            detectProducts(video) {
+                // Simple detection simulation - in real app this would use OpenCV or ML
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                
+                // Get image data for analysis
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Simple color-based detection (looking for distinct color patterns)
+                const result = this.analyzeFrame(imageData);
+                
+                if (result.detected) {
+                    console.log('🎯 Product detected:', result.product);
+                    this.handleProductDetection(result);
+                }
+            }
+            
+            analyzeFrame(imageData) {
+                const data = imageData.data;
+                let redCount = 0, blueCount = 0, greenCount = 0;
+                
+                // Sample pixels for color analysis
+                for (let i = 0; i < data.length; i += 4000) { // Sample every 1000th pixel
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    
+                    if (r > 150 && g < 100 && b < 100) redCount++;
+                    if (b > 150 && r < 100 && g < 100) blueCount++;
+                    if (g > 150 && r < 100 && b < 100) greenCount++;
+                }
+                
+                // Simple detection logic
+                if (redCount > 50) {
+                    return {
+                        detected: true,
+                        product: 'Red Product',
+                        confidence: Math.min(redCount / 100, 1),
+                        color: 'red'
+                    };
+                } else if (blueCount > 50) {
+                    return {
+                        detected: true,
+                        product: 'Blue Product',
+                        confidence: Math.min(blueCount / 100, 1),
+                        color: 'blue'
+                    };
+                } else if (greenCount > 50) {
+                    return {
+                        detected: true,
+                        product: 'Green Product',
+                        confidence: Math.min(greenCount / 100, 1),
+                        color: 'green'
+                    };
+                }
+                
+                return { detected: false };
+            }
+            
+            handleProductDetection(result) {
+                console.log('🎯 Product detected:', result);
+                
+                // Show product info
+                this.showProductInfo(result);
+                
+                // Show detection stats
+                this.showDetectionStats(result);
+                
+                // Pause detection briefly
+                this.pauseDetection();
+            }
+            
+            showProductInfo(result) {
+                const productInfo = document.getElementById('product-info');
+                const title = document.getElementById('product-title');
+                const description = document.getElementById('product-description');
+                const details = document.getElementById('product-details');
+                
+                if (productInfo && title && description && details) {
+                    title.textContent = result.product;
+                    description.textContent = `Detected ${result.color} colored object with ${(result.confidence * 100).toFixed(1)}% confidence`;
+                    details.innerHTML = `
+                        <div><strong>Detection Method:</strong> Color Analysis</div>
+                        <div><strong>Primary Color:</strong> ${result.color}</div>
+                        <div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>
+                    `;
+                    
+                    productInfo.classList.remove('hidden');
+                }
+            }
+            
+            showDetectionStats(result) {
+                const stats = document.getElementById('detection-stats');
+                if (stats) {
+                    stats.innerHTML = `
+                        <div><strong>Product:</strong> ${result.product}</div>
+                        <div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>
+                        <div><strong>Method:</strong> Color Detection</div>
+                        <div><strong>Color:</strong> ${result.color}</div>
+                    `;
+                    stats.classList.remove('hidden');
+                }
+            }
+            
+            pauseDetection() {
+                if (this.detectionInterval) {
+                    clearInterval(this.detectionInterval);
+                    this.detectionInterval = null;
+                }
+                
+                // Resume after 3 seconds
+                setTimeout(() => {
+                    if (this.currentMode === 'product-scanning') {
+                        this.startDetectionLoop();
+                    }
+                }, 3000);
             }
             
             stopScan() {
                 this.currentMode = 'idle';
                 this.showStatus('Scanning stopped', 'info');
                 
+                // Stop detection loop
+                if (this.detectionInterval) {
+                    clearInterval(this.detectionInterval);
+                    this.detectionInterval = null;
+                }
+                
                 // Hide AR canvas
                 const canvas = document.getElementById('ar-canvas');
                 if (canvas) {
                     canvas.classList.add('hidden');
                 }
+                
+                // Hide detection stats
+                const stats = document.getElementById('detection-stats');
+                if (stats) {
+                    stats.classList.add('hidden');
+                }
+                
+                // Hide product info
+                this.closeProductInfo();
             }
             
             closeProductInfo() {
