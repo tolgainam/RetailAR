@@ -88,6 +88,24 @@ class RetailAR {
         window.closeProductInfo = () => this.closeProductInfo();
         window.switchDetectionMethod = (method) => this.switchDetectionMethod(method);
         window.getDetectionStats = () => this.productDetector?.getStats();
+        
+        // Debug function for mobile
+        window.debugVideo = () => {
+            const video = document.getElementById('qr-video');
+            console.log('=== VIDEO DEBUG INFO ===');
+            console.log('Video element:', video);
+            console.log('Video source:', video.srcObject);
+            console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+            console.log('Video playing:', !video.paused);
+            console.log('Video ready state:', video.readyState);
+            console.log('Video current time:', video.currentTime);
+            console.log('Video muted:', video.muted);
+            console.log('Video autoplay:', video.autoplay);
+            console.log('Video element visible:', video.clientWidth, 'x', video.clientHeight);
+            console.log('Video style display:', getComputedStyle(video).display);
+            console.log('Video style visibility:', getComputedStyle(video).visibility);
+            console.log('======================');
+        };
     }
     
     async setupCamera() {
@@ -151,13 +169,64 @@ class RetailAR {
             
             video.srcObject = stream;
             
+            // Ensure video plays on mobile
+            video.setAttribute('autoplay', true);
+            video.setAttribute('playsinline', true);
+            video.setAttribute('muted', true);
+            
+            console.log('📷 Video element configured, waiting for metadata...');
+            
             // Wait for video to be ready
-            await new Promise((resolve) => {
-                video.addEventListener('loadedmetadata', resolve, { once: true });
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Video metadata loading timeout'));
+                }, 10000);
+                
+                video.addEventListener('loadedmetadata', () => {
+                    clearTimeout(timeout);
+                    console.log('📷 Video metadata loaded');
+                    resolve();
+                }, { once: true });
+                
+                video.addEventListener('error', (e) => {
+                    clearTimeout(timeout);
+                    console.error('Video error:', e);
+                    reject(new Error('Video loading error'));
+                }, { once: true });
             });
+            
+            // Force play on mobile
+            try {
+                await video.play();
+                console.log('📷 Video play started successfully');
+            } catch (playError) {
+                console.warn('Video autoplay failed, showing manual start button:', playError);
+                
+                // Show manual start button for mobile
+                const startPrompt = document.getElementById('video-start-prompt');
+                const startButton = document.getElementById('start-video-btn');
+                
+                if (startPrompt && startButton) {
+                    startPrompt.style.display = 'block';
+                    
+                    startButton.onclick = async () => {
+                        try {
+                            video.muted = true;
+                            await video.play();
+                            startPrompt.style.display = 'none';
+                            console.log('📷 Video started manually');
+                        } catch (manualError) {
+                            console.error('Manual video start failed:', manualError);
+                        }
+                    };
+                }
+            }
             
             console.log('📷 Camera initialized successfully');
             console.log(`Camera resolution: ${video.videoWidth}x${video.videoHeight}`);
+            console.log(`Video element size: ${video.clientWidth}x${video.clientHeight}`);
+            console.log(`Video playing: ${!video.paused}`);
+            console.log(`Video ready state: ${video.readyState}`);
         } catch (error) {
             console.error('Camera setup failed:', error);
             

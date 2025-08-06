@@ -63,6 +63,18 @@
             position: absolute;
             top: 0;
             left: 0;
+            background-color: #000;
+            z-index: 1;
+        }
+        
+        /* Mobile video fixes */
+        @media (max-width: 768px) {
+            #qr-video {
+                width: 100vw;
+                height: 100vh;
+                object-fit: cover;
+                transform: none;
+            }
         }
         
         .scanner-overlay {
@@ -225,6 +237,10 @@
         <div class="scanner-container">
             <video id="qr-video" autoplay muted playsinline></video>
             <div class="scanner-overlay"></div>
+            <div id="video-start-prompt" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; text-align: center; z-index: 10;">
+                <p>📹 Tap to start camera</p>
+                <button id="start-video-btn" class="btn" style="margin-top: 10px;">Start Camera</button>
+            </div>
         </div>
         
         <div class="controls">
