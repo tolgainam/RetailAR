@@ -26,27 +26,34 @@ export class OCRDetector {
         try {
             console.log('🔤 Initializing OCR detector...');
             
-            // Check if Tesseract is available
-            if (typeof Tesseract === 'undefined') {
-                console.warn('⚠️ Tesseract.js not loaded, loading from CDN...');
-                await this._loadTesseract();
+            // Wait for Tesseract to be available (loaded via ESM in HTML)
+            let attempts = 0;
+            const maxAttempts = 30; // 15 seconds max wait
+            
+            while (typeof window.Tesseract === 'undefined' && attempts < maxAttempts) {
+                console.log('⏳ Waiting for Tesseract.js to load...');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
             }
             
-            // Create Tesseract worker
-            this.worker = await Tesseract.createWorker('eng', 1, {
-                logger: m => {
-                    if (m.status === 'recognizing text') {
-                        console.log(`OCR Progress: ${(m.progress * 100).toFixed(0)}%`);
-                    }
-                }
-            });
+            if (typeof window.Tesseract === 'undefined') {
+                console.warn('⚠️ Tesseract.js not loaded after 15 seconds, OCR will be disabled');
+                this.isInitialized = false;
+                return;
+            }
             
-            // Configure for faster but less accurate recognition suitable for product detection
+            console.log('Creating Tesseract worker...');
+            
+            // Use the global Tesseract instance
+            this.worker = await window.Tesseract.createWorker();
+            
+            console.log('Loading English language data...');
+            await this.worker.loadLanguage('eng');
+            await this.worker.initialize('eng');
+            
+            console.log('Setting OCR parameters...');
             await this.worker.setParameters({
-                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ',
-                tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT, // Good for scattered text
-                tessjs_create_hocr: '0',
-                tessjs_create_tsv: '0'
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 '
             });
             
             this.isInitialized = true;
@@ -54,7 +61,10 @@ export class OCRDetector {
             
         } catch (error) {
             console.error('❌ Failed to initialize OCR detector:', error);
-            throw error;
+            console.warn('⚠️ OCR functionality will be disabled');
+            this.isInitialized = false;
+            this.worker = null;
+            // Don't throw error to prevent blocking other detection methods
         }
     }
     
@@ -62,18 +72,8 @@ export class OCRDetector {
      * Load Tesseract.js from CDN if not already loaded
      */
     async _loadTesseract() {
-        return new Promise((resolve, reject) => {
-            if (typeof Tesseract !== 'undefined') {
-                resolve();
-                return;
-            }
-            
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js';
-            script.onload = resolve;
-            script.onerror = () => reject(new Error('Failed to load Tesseract.js'));
-            document.head.appendChild(script);
-        });
+        // Since we're loading Tesseract synchronously in HTML, this is just a placeholder
+        return Promise.resolve();
     }
     
     /**
@@ -98,7 +98,14 @@ export class OCRDetector {
      * Detect text in camera frame and match against product keywords
      */
     async detectProducts(cameraFrame, products) {
-        if (!this.isInitialized) await this.init();
+        if (!this.isInitialized) {
+            await this.init();
+            // If still not initialized after init attempt, return null
+            if (!this.isInitialized || !this.worker) {
+                console.warn('⚠️ OCR not available, skipping text detection');
+                return null;
+            }
+        }
         
         const startTime = Date.now();
         this.detectionStats.totalOCRRequests++;
@@ -107,8 +114,13 @@ export class OCRDetector {
             // Convert ImageData to canvas for Tesseract
             const canvas = this._imageDataToCanvas(cameraFrame);
             
-            // Perform OCR
-            const { data: { text } } = await this.worker.recognize(canvas);
+            // Perform OCR with timeout
+            const ocrPromise = this.worker.recognize(canvas);
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('OCR timeout')), 10000); // 10 second timeout
+            });
+            
+            const { data: { text } } = await Promise.race([ocrPromise, timeoutPromise]);
             
             this.detectionStats.successfulOCRRequests++;
             

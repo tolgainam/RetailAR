@@ -886,7 +886,11 @@ class RetailAR {
             this.showStatus(`Switched to ${method} detection`, 'success');
         } catch (error) {
             console.error('Failed to switch method:', error);
-            this.showError(`Failed to switch to ${method} detection: ${error.message}`);
+            let errorMessage = `Failed to switch to ${method} detection`;
+            if (method === 'ocr' || method === 'hybrid') {
+                errorMessage += ' (OCR not available - using template matching instead)';
+            }
+            this.showError(errorMessage);
         }
     }
     

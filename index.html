@@ -569,7 +569,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v2.6 • SFP UXD 🤝 BR
+            v2.6.1 • SFP UXD 🤝 BR • OCR Fixes
         </div>
         
         <style>
@@ -1104,8 +1104,14 @@
     }
     </script>
     <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+    
+    <!-- Initialize Tesseract.js globally for OCR -->
+    <script type="module">
+        import Tesseract from 'https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/+esm';
+        window.Tesseract = Tesseract;
+        console.log('✅ Tesseract.js loaded as ESM');
+    </script>
     <script type="module" src="./src/main.js"></script>
     
     <script>

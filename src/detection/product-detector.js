@@ -50,7 +50,11 @@ export class ProductDetector {
             } else if (this.currentMethod === 'hybrid') {
                 // Initialize both template matcher and OCR detector for hybrid mode
                 await this.templateMatcher.init();
-                await this.ocrDetector.init();
+                try {
+                    await this.ocrDetector.init();
+                } catch (error) {
+                    console.warn('⚠️ OCR initialization failed in hybrid mode, will use template matching only:', error);
+                }
             }
             
             // Load reference images and keywords for all products
@@ -154,14 +158,18 @@ export class ProductDetector {
                 }
             }
             if (!this.ocrDetector.isInitialized) {
-                await this.ocrDetector.init();
-                for (const product of products) {
-                    if (product.detection?.keywords) {
-                        this.ocrDetector.loadProductKeywords(
-                            product.id,
-                            product.detection.keywords
-                        );
+                try {
+                    await this.ocrDetector.init();
+                    for (const product of products) {
+                        if (product.detection?.keywords) {
+                            this.ocrDetector.loadProductKeywords(
+                                product.id,
+                                product.detection.keywords
+                            );
+                        }
                     }
+                } catch (error) {
+                    console.warn('⚠️ OCR initialization failed in hybrid mode, continuing with template matching only:', error);
                 }
             }
         }
@@ -240,6 +248,14 @@ export class ProductDetector {
     
     async _detectWithHybrid(cameraFrame, products) {
         console.log('🔀 Starting hybrid detection (Template + OCR)...');
+        
+        // Check if OCR is available
+        const ocrAvailable = this.ocrDetector.isInitialized && this.ocrDetector.worker;
+        
+        if (!ocrAvailable) {
+            console.log('⚠️ OCR not available in hybrid mode, falling back to template matching only');
+            return await this.templateMatcher.matchFrame(cameraFrame, products);
+        }
         
         // Run both detection methods in parallel for better performance
         const [templateResult, ocrResult] = await Promise.all([
