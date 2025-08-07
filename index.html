@@ -102,6 +102,14 @@
                 border: 3px solid rgba(255, 255, 255, 0.9) !important;
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             }
+            
+            .popup-btn {
+                padding: 15px !important;
+                font-size: 16px !important;
+                min-height: 44px;
+                touch-action: manipulation !important;
+                pointer-events: auto !important;
+            }
         }
         
         .scanner-overlay {
@@ -218,6 +226,11 @@
             transition: all 0.15s ease;
             outline: none;
             border: 2px solid transparent;
+            pointer-events: auto;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         .popup-btn:hover {
@@ -394,7 +407,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v1.8 • SFP UXD & BR
+            v1.9 • SFP UXD & BR
         </div>
         
         <style>
@@ -478,12 +491,14 @@
                     padding: 15px;
                     font-family: Arial, sans-serif;
                     font-size: 14px;
-                    z-index: 20000;
+                    z-index: 30000;
                     border-radius: 10px;
                     overflow-y: auto;
                     border: 2px solid #667eea;
                     display: flex;
                     flex-direction: column;
+                    pointer-events: auto;
+                    touch-action: manipulation;
                 `;
                 
                 const styles = video ? getComputedStyle(video) : null;
