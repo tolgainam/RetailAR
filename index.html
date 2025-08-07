@@ -276,33 +276,67 @@
             bottom: 50px;
             left: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             z-index: 1001;
             max-height: 200px;
             overflow-y: auto;
+            /* Liquid glass effect */
+            background-image: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            /* Subtle animation */
+            animation: glassMorph 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glassMorph {
+            0% {
+                backdrop-filter: blur(20px);
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            100% {
+                backdrop-filter: blur(25px);
+                background: rgba(255, 255, 255, 0.15);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
         }
         
         .product-info h2 {
             margin-bottom: 10px;
-            color: #667eea;
+            color: #ffffff;
             font-size: 1.2rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            font-weight: 600;
         }
         
         .product-info p {
             margin-bottom: 15px;
             line-height: 1.5;
             font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         #product-details {
             font-size: 0.8rem;
             line-height: 1.4;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         
         #product-details div {
             margin-bottom: 5px;
+        }
+        
+        #product-details strong {
+            color: rgba(255, 255, 255, 0.95);
         }
         
         .product-buttons-inline {
@@ -313,10 +347,10 @@
         }
         
         .product-button-inline {
-            padding: 8px 16px;
-            font-size: 0.8rem;
+            padding: 4px 8px;
+            font-size: 0.7rem;
             border: none;
-            border-radius: 4px;
+            border-radius: 12px;
             color: white;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -324,15 +358,23 @@
             text-decoration: none;
             display: inline-block;
             text-align: center;
+            min-width: 60px;
+            height: 24px;
+            line-height: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         .product-button-inline:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border-color: rgba(255, 255, 255, 0.4);
         }
         
         .product-button-inline:active {
-            transform: translateY(0px);
+            transform: translateY(0px) scale(0.95);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
         
         .detection-stats {
@@ -527,7 +569,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v2.4 • SFP UXD & BR
+            v2.5 • SFP UXD & BR
         </div>
         
         <style>
