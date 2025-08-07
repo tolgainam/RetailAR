@@ -3,9 +3,9 @@
  * Full-featured AR product recognition system
  */
 
-// Use global dependencies from CDN
-const QrScanner = window.QrScanner;
-const THREE = window.THREE;
+// Import dependencies using import map
+import * as THREE from 'three';
+const QrScanner = window.QrScanner; // QR Scanner still from UMD
 
 // Import local modules
 import { ProductLoader } from './config/product-loader.js';

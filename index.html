@@ -370,7 +370,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v1.3 • SFP UXD & BR
+            v1.4 • SFP UXD & BR
         </div>
         
         <style>
@@ -863,8 +863,15 @@
         }, 15000);
     </script>
     
-    <!-- Load dependencies via CDN -->
-    <script src="https://unpkg.com/three@0.149.0/build/three.min.js"></script>
+    <!-- Load dependencies via CDN with modern import map -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
     <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
     <script type="module" src="./src/main.js"></script>

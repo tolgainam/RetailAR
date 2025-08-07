@@ -3,9 +3,8 @@
  * Handles 3D model rendering, positioning, and animations
  */
 
-// Use global THREE from CDN
-const THREE = window.THREE;
-// Note: GLTFLoader will need to be added separately if needed
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 export class ARRenderer {
     constructor(canvas) {
