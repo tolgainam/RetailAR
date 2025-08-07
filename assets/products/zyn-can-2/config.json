@@ -5,6 +5,19 @@
   "detection": {
     "method": "template",
     "confidence_threshold": 0.35,
+    "keywords": [
+      "ZYN",
+      "Spearmint",
+      "3mg",
+      "nicotine",
+      "pouches",
+      "15 pouches",
+      "citrus",
+      "orange",
+      "lemon",
+      "tangy",
+      "mint"
+    ],
     "reference_images": [
       {
         "id": "front_label",

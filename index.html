@@ -569,7 +569,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v2.5 • SFP UXD & BR
+            v2.6 • SFP UXD 🤝 BR
         </div>
         
         <style>
@@ -689,10 +689,12 @@
                         </div>
                         
                         <h4 style="color: #667eea; margin-bottom: 10px;">🔍 Detection Method</h4>
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px;">
-                            <button onclick="switchDetectionMethod('template')" class="popup-btn" style="background: #17a2b8;">Template Matching (Active)</button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="switchDetectionMethod('template')" class="popup-btn" style="background: #17a2b8;">Template Matching</button>
+                            <button onclick="switchDetectionMethod('ocr')" class="popup-btn" style="background: #28a745;">OCR Text Detection</button>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="switchDetectionMethod('hybrid')" class="popup-btn" style="background: #fd7e14;">🔀 Hybrid (Template + OCR)</button>
                             <button onclick="switchDetectionMethod('ml')" class="popup-btn" style="background: #6f42c1;" disabled>ML Detection (Coming Soon)</button>
                         </div>
                         
@@ -1102,6 +1104,7 @@
     }
     </script>
     <script src="https://unpkg.com/qr-scanner@1.4.2/qr-scanner.umd.min.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
     <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
     <script type="module" src="./src/main.js"></script>
     

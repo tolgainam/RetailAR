@@ -1,6 +1,6 @@
 {
   "app_settings": {
-    "detection_method": "template",
+    "detection_method": "hybrid",
     "debug_mode": false,
     "camera": {
       "preferred_resolution": [1280, 720],
@@ -34,6 +34,18 @@
       "confidence_threshold": 0.8,
       "batch_size": 1,
       "warm_up": true
+    },
+    "ocr_detection": {
+      "language": "eng",
+      "confidence_threshold": 0.3,
+      "processing_timeout": 10000,
+      "char_whitelist": "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 "
+    },
+    "hybrid_detection": {
+      "template_weight": 0.7,
+      "ocr_weight": 0.3,
+      "agreement_bonus": 0.15,
+      "high_confidence_bonus": 0.1
     }
   },
   "ui_settings": {

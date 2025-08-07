@@ -5,12 +5,14 @@
 
 import { SimpleDetector } from './simple-detector.js';
 import { TemplateMatcher } from './template-matcher.js';
+import { OCRDetector } from './ocr-detector.js';
 
 export class ProductDetector {
     constructor(productLoader) {
         this.productLoader = productLoader;
         this.simpleDetector = new SimpleDetector();
         this.templateMatcher = new TemplateMatcher();
+        this.ocrDetector = new OCRDetector();
         
         this.currentMethod = 'simple';
         this.isInitialized = false;
@@ -21,6 +23,7 @@ export class ProductDetector {
             methodUsage: {
                 simple: 0,
                 template: 0,
+                ocr: 0,
                 ml: 0,
                 hybrid: 0
             }
@@ -42,9 +45,15 @@ export class ProductDetector {
                 await this.simpleDetector.init();
             } else if (this.currentMethod === 'template') {
                 await this.templateMatcher.init();
+            } else if (this.currentMethod === 'ocr') {
+                await this.ocrDetector.init();
+            } else if (this.currentMethod === 'hybrid') {
+                // Initialize both template matcher and OCR detector for hybrid mode
+                await this.templateMatcher.init();
+                await this.ocrDetector.init();
             }
             
-            // Load reference images for all products
+            // Load reference images and keywords for all products
             const products = this.productLoader.getAllProducts();
             for (const product of products) {
                 if (product.detection?.reference_images) {
@@ -59,6 +68,22 @@ export class ProductDetector {
                             product.detection.reference_images
                         );
                     }
+                }
+                
+                // Load OCR keywords if available
+                if ((this.currentMethod === 'ocr' || this.currentMethod === 'hybrid') && product.detection?.keywords) {
+                    this.ocrDetector.loadProductKeywords(
+                        product.id,
+                        product.detection.keywords
+                    );
+                }
+                
+                // Load template images for hybrid mode
+                if (this.currentMethod === 'hybrid' && product.detection?.reference_images) {
+                    await this.templateMatcher.preprocessReferenceImages(
+                        product.id, 
+                        product.detection.reference_images
+                    );
                 }
             }
             
@@ -75,8 +100,8 @@ export class ProductDetector {
      * Switch detection method at runtime
      */
     async setDetectionMethod(method) {
-        if (!['simple', 'template'].includes(method)) {
-            throw new Error(`Invalid detection method: ${method}. Supported methods: 'simple', 'template'`);
+        if (!['simple', 'template', 'ocr', 'hybrid'].includes(method)) {
+            throw new Error(`Invalid detection method: ${method}. Supported methods: 'simple', 'template', 'ocr', 'hybrid'`);
         }
         
         this.currentMethod = method;
@@ -105,6 +130,40 @@ export class ProductDetector {
                     );
                 }
             }
+        } else if (method === 'ocr' && !this.ocrDetector.isInitialized) {
+            await this.ocrDetector.init();
+            for (const product of products) {
+                if (product.detection?.keywords) {
+                    this.ocrDetector.loadProductKeywords(
+                        product.id,
+                        product.detection.keywords
+                    );
+                }
+            }
+        } else if (method === 'hybrid') {
+            // Initialize both detectors for hybrid mode
+            if (!this.templateMatcher.isInitialized) {
+                await this.templateMatcher.init();
+                for (const product of products) {
+                    if (product.detection?.reference_images) {
+                        await this.templateMatcher.preprocessReferenceImages(
+                            product.id, 
+                            product.detection.reference_images
+                        );
+                    }
+                }
+            }
+            if (!this.ocrDetector.isInitialized) {
+                await this.ocrDetector.init();
+                for (const product of products) {
+                    if (product.detection?.keywords) {
+                        this.ocrDetector.loadProductKeywords(
+                            product.id,
+                            product.detection.keywords
+                        );
+                    }
+                }
+            }
         }
         
         console.log(`Detection method switched to: ${method}`);
@@ -131,6 +190,16 @@ export class ProductDetector {
                 case 'template':
                     result = await this._detectWithTemplate(cameraFrame, products);
                     this.detectionStats.methodUsage.template++;
+                    break;
+                    
+                case 'ocr':
+                    result = await this._detectWithOCR(cameraFrame, products);
+                    this.detectionStats.methodUsage.ocr++;
+                    break;
+                    
+                case 'hybrid':
+                    result = await this._detectWithHybrid(cameraFrame, products);
+                    this.detectionStats.methodUsage.hybrid++;
                     break;
                     
                 default:
@@ -163,6 +232,128 @@ export class ProductDetector {
     
     async _detectWithTemplate(cameraFrame, products) {
         return await this.templateMatcher.matchFrame(cameraFrame, products);
+    }
+    
+    async _detectWithOCR(cameraFrame, products) {
+        return await this.ocrDetector.detectProducts(cameraFrame, products);
+    }
+    
+    async _detectWithHybrid(cameraFrame, products) {
+        console.log('🔀 Starting hybrid detection (Template + OCR)...');
+        
+        // Run both detection methods in parallel for better performance
+        const [templateResult, ocrResult] = await Promise.all([
+            this.templateMatcher.matchFrame(cameraFrame, products).catch(e => {
+                console.warn('Template matching failed in hybrid mode:', e);
+                return null;
+            }),
+            this.ocrDetector.detectProducts(cameraFrame, products).catch(e => {
+                console.warn('OCR detection failed in hybrid mode:', e);
+                return null;
+            })
+        ]);
+        
+        // Combine results using weighted scoring
+        return this._combineHybridResults(templateResult, ocrResult, products);
+    }
+    
+    /**
+     * Combine template matching and OCR results into a single result
+     */
+    _combineHybridResults(templateResult, ocrResult, products) {
+        // If no results from either method
+        if (!templateResult && !ocrResult) {
+            console.log('🔀 Hybrid: No results from either method');
+            return null;
+        }
+        
+        // If only one method has results, return that result
+        if (templateResult && !ocrResult) {
+            console.log('🔀 Hybrid: Only template matching found result');
+            templateResult.hybridMethod = 'template-only';
+            return templateResult;
+        }
+        
+        if (ocrResult && !templateResult) {
+            console.log('🔀 Hybrid: Only OCR found result');
+            ocrResult.hybridMethod = 'ocr-only';
+            return ocrResult;
+        }
+        
+        // Both methods have results - combine them
+        console.log(`🔀 Hybrid: Both methods found results - Template: ${templateResult.productName} (${templateResult.confidence.toFixed(3)}), OCR: ${ocrResult.productName} (${ocrResult.confidence.toFixed(3)})`);
+        
+        // Check if both methods detected the same product
+        if (templateResult.productId === ocrResult.productId) {
+            // Same product detected by both methods - boost confidence
+            const combinedConfidence = this._calculateCombinedConfidence(
+                templateResult.confidence, 
+                ocrResult.confidence,
+                true // same product bonus
+            );
+            
+            console.log(`✅ Hybrid: Same product detected by both methods! Combined confidence: ${combinedConfidence.toFixed(3)}`);
+            
+            return {
+                ...templateResult,
+                confidence: combinedConfidence,
+                hybridMethod: 'both-same-product',
+                ocrDetails: {
+                    confidence: ocrResult.confidence,
+                    matchedKeywords: ocrResult.matchedKeywords,
+                    detectedText: ocrResult.detectedText
+                },
+                templateDetails: {
+                    confidence: templateResult.confidence,
+                    matchDetails: templateResult.matchDetails
+                }
+            };
+        } else {
+            // Different products detected - choose the one with higher confidence
+            // but apply penalty for conflicting results
+            const templatePenalized = templateResult.confidence * 0.8;
+            const ocrPenalized = ocrResult.confidence * 0.8;
+            
+            const bestResult = templatePenalized > ocrPenalized ? templateResult : ocrResult;
+            const conflictingResult = templatePenalized > ocrPenalized ? ocrResult : templateResult;
+            
+            console.log(`⚠️ Hybrid: Different products detected. Choosing ${bestResult.productName} with penalized confidence: ${Math.max(templatePenalized, ocrPenalized).toFixed(3)}`);
+            
+            return {
+                ...bestResult,
+                confidence: Math.max(templatePenalized, ocrPenalized),
+                hybridMethod: 'conflicting-results',
+                conflictingDetection: {
+                    productName: conflictingResult.productName,
+                    confidence: conflictingResult.confidence
+                }
+            };
+        }
+    }
+    
+    /**
+     * Calculate combined confidence score for hybrid detection
+     */
+    _calculateCombinedConfidence(templateConfidence, ocrConfidence, sameProduct = false) {
+        // Weighted average with higher weight on template matching (more reliable for visual products)
+        const templateWeight = 0.7;
+        const ocrWeight = 0.3;
+        
+        let combinedScore = (templateConfidence * templateWeight) + (ocrConfidence * ocrWeight);
+        
+        // Bonus if both methods agree on the same product
+        if (sameProduct) {
+            const agreementBonus = 0.15;
+            combinedScore = Math.min(1.0, combinedScore + agreementBonus);
+        }
+        
+        // Additional boost if both methods are highly confident
+        if (templateConfidence > 0.8 && ocrConfidence > 0.6) {
+            const highConfidenceBonus = 0.1;
+            combinedScore = Math.min(1.0, combinedScore + highConfidenceBonus);
+        }
+        
+        return combinedScore;
     }
     
     /**
@@ -254,7 +445,8 @@ export class ProductDetector {
             successRate: successRate.toFixed(1) + '%',
             currentMethod: this.currentMethod,
             simpleStats: this.simpleDetector.getStats(),
-            templateStats: this.templateMatcher.getStats()
+            templateStats: this.templateMatcher.getStats(),
+            ocrStats: this.ocrDetector.getStats()
         };
     }
     
@@ -269,6 +461,7 @@ export class ProductDetector {
             methodUsage: {
                 simple: 0,
                 template: 0,
+                ocr: 0,
                 ml: 0,
                 hybrid: 0
             }
@@ -278,9 +471,10 @@ export class ProductDetector {
     /**
      * Cleanup all resources
      */
-    cleanup() {
+    async cleanup() {
         this.simpleDetector.cleanup();
         this.templateMatcher.cleanup();
+        await this.ocrDetector.cleanup();
         this.isInitialized = false;
     }
 }

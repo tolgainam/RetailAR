@@ -5,6 +5,18 @@
   "detection": {
     "method": "template",
     "confidence_threshold": 0.35,
+    "keywords": [
+      "ZYN",
+      "Apple",
+      "Mint",
+      "Apple Mint",
+      "3mg",
+      "nicotine",
+      "pouches",
+      "15 pouches",
+      "cool mint",
+      "fresh mint"
+    ],
     "reference_images": [
       {
         "id": "front_label",
