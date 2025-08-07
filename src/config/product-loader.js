@@ -25,8 +25,13 @@ export class ProductLoader {
     async _loadConfigs() {
         try {
             // Load app configuration - try multiple paths for better compatibility
-            const isGitHubPages = window.location.hostname.includes('github.io');
-            console.log(`🌐 Environment detected: ${isGitHubPages ? 'GitHub Pages' : 'Local Development'} (hostname: ${window.location.hostname})`);
+            const hostname = window.location.hostname;
+            const isGitHubPages = hostname.includes('github.io') || hostname.includes('githubusercontent.com');
+            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168') || hostname.startsWith('10.');
+            
+            console.log(`🌐 Environment detected: ${isGitHubPages ? 'GitHub Pages' : isLocal ? 'Local Development' : 'Unknown'} (hostname: ${hostname})`);
+            
+            // For GitHub Pages, always use relative paths first
             const configPaths = isGitHubPages ? [
                 './src/config/app-config.json',    // GitHub Pages relative path (primary)
                 'src/config/app-config.json',      // GitHub Pages simple relative (fallback)
@@ -79,8 +84,13 @@ export class ProductLoader {
     async _loadProductConfig(productId) {
         try {
             // Try multiple paths for better compatibility
-            const isGitHubPages = window.location.hostname.includes('github.io');
-            console.log(`🌐 Product config environment: ${isGitHubPages ? 'GitHub Pages' : 'Local Development'} for ${productId}`);
+            const hostname = window.location.hostname;
+            const isGitHubPages = hostname.includes('github.io') || hostname.includes('githubusercontent.com');
+            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168') || hostname.startsWith('10.');
+            
+            console.log(`🌐 Product config environment: ${isGitHubPages ? 'GitHub Pages' : isLocal ? 'Local Development' : 'Unknown'} for ${productId} (hostname: ${hostname})`);
+            
+            // For GitHub Pages, always use relative paths first
             const configPaths = isGitHubPages ? [
                 `./assets/products/${productId}/config.json`,    // GitHub Pages relative path (primary)
                 `assets/products/${productId}/config.json`,      // GitHub Pages simple relative (fallback)
