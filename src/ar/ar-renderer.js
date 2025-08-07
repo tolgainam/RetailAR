@@ -3,8 +3,9 @@
  * Handles 3D model rendering, positioning, and animations
  */
 
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// Use global THREE from CDN
+const THREE = window.THREE;
+// Note: GLTFLoader will need to be added separately if needed
 
 export class ARRenderer {
     constructor(canvas) {

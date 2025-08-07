@@ -370,7 +370,7 @@
             opacity: 0.7;
             color: rgba(255,255,255,0.8);
         ">
-            v1.1 • SFP UXD & BR
+            v1.2 • SFP UXD & BR
         </div>
         
         <style>
@@ -483,9 +483,11 @@
                         </div>
                         
                         <h4 style="color: #667eea; margin-bottom: 10px;">🔍 Detection Method</h4>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                            <button onclick="switchDetectionMethod('template')" class="popup-btn" style="background: #17a2b8;">Template (Default)</button>
-                            <button onclick="switchDetectionMethod('ml')" class="popup-btn" style="background: #6f42c1;" disabled>ML (Coming Soon)</button>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="switchDetectionMethod('template')" class="popup-btn" style="background: #17a2b8;">Template Matching (Active)</button>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px;">
+                            <button onclick="switchDetectionMethod('ml')" class="popup-btn" style="background: #6f42c1;" disabled>ML Detection (Coming Soon)</button>
                         </div>
                         
                         <h4 style="color: #667eea; margin-bottom: 10px;">🧪 Debug Tools</h4>
