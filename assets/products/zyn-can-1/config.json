@@ -97,7 +97,7 @@
         "label": "Learn More",
         "action": {
           "type": "url",
-          "target": "https://www.zyn.com/us/products/zyn-cool-mint/",
+          "target": "https://www.zyn.com/gb/en/home.html",
           "new_window": true
         },
         "style": {
@@ -111,7 +111,7 @@
         "label": "Buy Now", 
         "action": {
           "type": "url",
-          "target": "https://store.zyn.com/cool-mint",
+          "target": "https://www.zyn.com/gb/en/home.html",
           "new_window": true
         },
         "style": {

@@ -100,7 +100,7 @@
         "size": [0.8, 0.3],
         "action": {
           "type": "url",
-          "target": "https://www.zyn.com/us/products/zyn-citrus/",
+          "target": "https://www.zyn.com/gb/en/home.html",
           "new_window": true
         },
         "style": {
@@ -116,7 +116,7 @@
         "size": [0.8, 0.3],
         "action": {
           "type": "url",
-          "target": "https://store.zyn.com/citrus",
+          "target": "https://www.zyn.com/gb/en/home.html",
           "new_window": true
         },
         "style": {
