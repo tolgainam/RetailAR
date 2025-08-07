@@ -24,14 +24,34 @@ export class ProductLoader {
     
     async _loadConfigs() {
         try {
-            // Load app configuration - handle both local dev and GitHub Pages deployment
-            const configPath = window.location.hostname.includes('github.io') 
-                ? './src/config/app-config.json'  // Relative path for GitHub Pages
-                : '/src/config/app-config.json';   // Absolute path for local dev
+            // Load app configuration - try multiple paths for better compatibility
+            const configPaths = [
+                '/src/config/app-config.json',     // Absolute path (preferred for local dev)
+                './src/config/app-config.json',    // Relative path (GitHub Pages fallback)
+                'src/config/app-config.json'       // Simple relative path (additional fallback)
+            ];
             
-            const appConfigResponse = await fetch(configPath);
-            if (!appConfigResponse.ok) {
-                throw new Error(`Failed to load app config: ${appConfigResponse.status} ${appConfigResponse.statusText}`);
+            let appConfigResponse;
+            let successfulPath;
+            
+            for (const configPath of configPaths) {
+                try {
+                    console.log(`🔍 Trying to load config from: ${configPath}`);
+                    appConfigResponse = await fetch(configPath);
+                    if (appConfigResponse.ok) {
+                        successfulPath = configPath;
+                        console.log(`✅ Successfully loaded config from: ${configPath}`);
+                        break;
+                    } else {
+                        console.warn(`❌ Failed to load from ${configPath}: ${appConfigResponse.status}`);
+                    }
+                } catch (fetchError) {
+                    console.warn(`❌ Fetch error for ${configPath}:`, fetchError.message);
+                }
+            }
+            
+            if (!appConfigResponse || !appConfigResponse.ok) {
+                throw new Error(`Failed to load app config from any path. Tried: ${configPaths.join(', ')}`);
             }
             this.appConfig = await appConfigResponse.json();
             
@@ -52,14 +72,34 @@ export class ProductLoader {
     
     async _loadProductConfig(productId) {
         try {
-            // Handle both local dev and GitHub Pages deployment
-            const configPath = window.location.hostname.includes('github.io')
-                ? `./assets/products/${productId}/config.json`  // Relative path for GitHub Pages
-                : `/assets/products/${productId}/config.json`;   // Absolute path for local dev
-                
-            const response = await fetch(configPath);
-            if (!response.ok) {
-                throw new Error(`Failed to load config for ${productId}: ${response.status} ${response.statusText}`);
+            // Try multiple paths for better compatibility
+            const configPaths = [
+                `/assets/products/${productId}/config.json`,     // Absolute path (preferred for local dev)
+                `./assets/products/${productId}/config.json`,    // Relative path (GitHub Pages fallback)
+                `assets/products/${productId}/config.json`       // Simple relative path (additional fallback)
+            ];
+            
+            let response;
+            let successfulPath;
+            
+            for (const configPath of configPaths) {
+                try {
+                    console.log(`🔍 Trying to load product ${productId} from: ${configPath}`);
+                    response = await fetch(configPath);
+                    if (response.ok) {
+                        successfulPath = configPath;
+                        console.log(`✅ Successfully loaded ${productId} from: ${configPath}`);
+                        break;
+                    } else {
+                        console.warn(`❌ Failed to load ${productId} from ${configPath}: ${response.status}`);
+                    }
+                } catch (fetchError) {
+                    console.warn(`❌ Fetch error for ${productId} at ${configPath}:`, fetchError.message);
+                }
+            }
+            
+            if (!response || !response.ok) {
+                throw new Error(`Failed to load config for ${productId} from any path. Tried: ${configPaths.join(', ')}`);
             }
             
             const config = await response.json();
