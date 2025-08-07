@@ -566,13 +566,8 @@ class RetailAR {
     async handleProductDetection(result) {
         console.log('🎯 Product detected:', result);
         
-        // Show product info (2D overlay only)
+        // Show product info with inline buttons
         this.showProductInfo(result.productConfig);
-        
-        // Create 2D buttons below detection frame
-        if (result.productConfig.interactions && result.productConfig.interactions.virtual_buttons) {
-            this.create2DButtons(result.productConfig.interactions.virtual_buttons);
-        }
         
         // Show detection confidence
         this.showDetectionStats(result);
@@ -619,6 +614,7 @@ class RetailAR {
         const title = document.getElementById('product-title');
         const description = document.getElementById('product-description');
         const details = document.getElementById('product-details');
+        const buttonsContainer = document.getElementById('product-buttons-inline');
         
         title.textContent = product.name;
         description.textContent = product.info_card.description;
@@ -631,6 +627,9 @@ class RetailAR {
             }
         }
         details.innerHTML = detailsHTML;
+        
+        // Create inline buttons
+        this.createInlineButtons(buttonsContainer, product.interactions?.virtual_buttons || []);
         
         // Apply custom colors
         if (product.info_card.colors) {
@@ -646,6 +645,59 @@ class RetailAR {
         if (productInfo) {
             productInfo.classList.add('hidden');
         }
+    }
+    
+    createInlineButtons(container, buttonConfigs) {
+        if (!container || !buttonConfigs || buttonConfigs.length === 0) return;
+        
+        // Clear existing buttons
+        container.innerHTML = '';
+        
+        // Create buttons
+        buttonConfigs.forEach(buttonConfig => {
+            const button = document.createElement('button');
+            button.className = 'product-button-inline';
+            button.textContent = buttonConfig.label;
+            button.style.backgroundColor = buttonConfig.style.background;
+            button.style.color = buttonConfig.style.text_color;
+            
+            // Add hover effect
+            button.addEventListener('mouseenter', () => {
+                button.style.backgroundColor = buttonConfig.style.hover_color;
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.backgroundColor = buttonConfig.style.background;
+            });
+            
+            // Add click handler
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`Inline button clicked: ${buttonConfig.label}`);
+                this.handle2DButtonClick(buttonConfig);
+            });
+            
+            // Add touch handlers for mobile
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                button.style.backgroundColor = buttonConfig.style.hover_color;
+                button.style.transform = 'scale(0.95)';
+            });
+            
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                button.style.backgroundColor = buttonConfig.style.background;
+                button.style.transform = 'scale(1)';
+                setTimeout(() => {
+                    this.handle2DButtonClick(buttonConfig);
+                }, 50);
+            });
+            
+            container.appendChild(button);
+        });
+        
+        console.log(`Created ${buttonConfigs.length} inline buttons in product card`);
     }
     
     create2DButtons(buttonConfigs) {
@@ -665,7 +717,7 @@ class RetailAR {
             button.style.backgroundColor = buttonConfig.style.background;
             button.style.color = buttonConfig.style.text_color;
             
-            // Add hover effect
+            // Add hover effect (desktop)
             button.addEventListener('mouseenter', () => {
                 button.style.backgroundColor = buttonConfig.style.hover_color;
             });
@@ -674,8 +726,30 @@ class RetailAR {
             });
             
             // Add click handler
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`Button clicked: ${buttonConfig.label}`);
                 this.handle2DButtonClick(buttonConfig);
+            });
+            
+            // Add touch handlers for mobile (no hover required)
+            button.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                button.style.backgroundColor = buttonConfig.style.hover_color;
+                button.style.transform = 'scale(0.95)';
+            });
+            
+            button.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                button.style.backgroundColor = buttonConfig.style.background;
+                button.style.transform = 'scale(1)';
+                console.log(`Button touched: ${buttonConfig.label}`);
+                // Trigger click after a small delay to show visual feedback
+                setTimeout(() => {
+                    this.handle2DButtonClick(buttonConfig);
+                }, 50);
             });
             
             buttonsDiv.appendChild(button);
