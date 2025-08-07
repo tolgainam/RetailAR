@@ -8,7 +8,7 @@ export class SimpleDetector {
         this.referenceImages = new Map();
         this.isInitialized = false;
         this.canvas = document.createElement('canvas');
-        this.ctx = this.canvas.getContext('2d');
+        this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
         
         // Detection parameters
         this.detectionThreshold = 0.6;
