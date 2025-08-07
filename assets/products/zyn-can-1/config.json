@@ -46,33 +46,28 @@
     ]
   },
   "visual": {
-    "3d_model": "models/zyn-can-1.glb",
-    "scale": [1.5, 1.5, 1.5],
+    "3d_model": null,
+    "2d_overlay": {
+      "enabled": true,
+      "type": "info_card",
+      "position": "bottom-right",
+      "background": "rgba(0,191,255,0.9)",
+      "border_color": "#FFFFFF"
+    },
+    "scale": [1.0, 1.0, 1.0],
     "position_offset": [0, 0, 0],
     "rotation_offset": [0, 0, 0],
     "material_overrides": {}
   },
   "animations": {
     "idle": {
-      "type": "rotate_float",
-      "rotation_speed": 0.5,
-      "float_amplitude": 0.015,
-      "float_speed": 2.0
+      "type": "disabled"
     },
     "flavor_effect": {
-      "type": "disabled",
-      "system": "none",
-      "color": "#00FFFF",
-      "intensity": 0,
-      "duration": 0,
-      "particle_count": 0,
-      "effect": "none"
+      "type": "disabled"
     },
     "recognition": {
-      "type": "scale_pulse",
-      "from": 0.9,
-      "to": 1.1,
-      "duration": 400
+      "type": "disabled"
     }
   },
   "info_card": {
@@ -100,8 +95,6 @@
       {
         "id": "learn_more",
         "label": "Learn More",
-        "position": [-1.2, 0.3, 0],
-        "size": [0.8, 0.3],
         "action": {
           "type": "url",
           "target": "https://www.zyn.com/us/products/zyn-cool-mint/",
@@ -115,9 +108,7 @@
       },
       {
         "id": "buy_now",
-        "label": "Buy Now",
-        "position": [-1.2, -0.1, 0],
-        "size": [0.8, 0.3],
+        "label": "Buy Now", 
         "action": {
           "type": "url",
           "target": "https://store.zyn.com/cool-mint",

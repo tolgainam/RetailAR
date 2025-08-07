@@ -426,7 +426,7 @@ class RetailAR {
                 errorMessage += error.message;
             }
             
-            this.updateStatus('error', errorMessage);
+            this.showStatus(errorMessage, 'error');
         }
     }
     
@@ -566,18 +566,12 @@ class RetailAR {
     async handleProductDetection(result) {
         console.log('🎯 Product detected:', result);
         
-        // Show product info
+        // Show product info (2D overlay only)
         this.showProductInfo(result.productConfig);
         
-        // Display AR overlay
-        await this.arRenderer.displayProduct(result);
-        
-        // Create virtual buttons
+        // Create 2D buttons below detection frame
         if (result.productConfig.interactions && result.productConfig.interactions.virtual_buttons) {
-            this.virtualButtons.createButtons(
-                result.productConfig, 
-                this.arRenderer.activeProduct.group
-            );
+            this.create2DButtons(result.productConfig.interactions.virtual_buttons);
         }
         
         // Show detection confidence
@@ -593,24 +587,17 @@ class RetailAR {
     }
     
     async handleNoProductDetection() {
-        // Only clean up if there's currently an active product
-        if (this.arRenderer && this.arRenderer.activeProduct) {
-            console.log('🧹 No product detected - cleaning up AR elements');
-            
-            // Hide AR product
-            await this.arRenderer.hideProduct();
-            
-            // Clear virtual buttons
-            if (this.virtualButtons) {
-                this.virtualButtons.clearButtons();
-            }
-            
-            // Hide product info
-            this.hideProductInfo();
-            
-            // Clear detection stats
-            this.updateStatus('info', 'Product scanning active - Point camera at products');
-        }
+        // Clean up any active product display
+        console.log('🧹 No product detected - cleaning up elements');
+        
+        // Hide product info
+        this.hideProductInfo();
+        
+        // Hide 2D buttons
+        this.hide2DButtons();
+        
+        // Clear detection stats
+        this.showStatus('Product scanning active - Point camera at products', 'info');
     }
     
     handleQRCode(qrData) {
@@ -658,6 +645,77 @@ class RetailAR {
         const productInfo = document.getElementById('product-info');
         if (productInfo) {
             productInfo.classList.add('hidden');
+        }
+    }
+    
+    create2DButtons(buttonConfigs) {
+        const container = document.getElementById('product-buttons-container');
+        const buttonsDiv = document.getElementById('product-buttons');
+        
+        if (!container || !buttonsDiv) return;
+        
+        // Clear existing buttons
+        buttonsDiv.innerHTML = '';
+        
+        // Create buttons
+        buttonConfigs.forEach(buttonConfig => {
+            const button = document.createElement('button');
+            button.className = 'product-button';
+            button.textContent = buttonConfig.label;
+            button.style.backgroundColor = buttonConfig.style.background;
+            button.style.color = buttonConfig.style.text_color;
+            
+            // Add hover effect
+            button.addEventListener('mouseenter', () => {
+                button.style.backgroundColor = buttonConfig.style.hover_color;
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.backgroundColor = buttonConfig.style.background;
+            });
+            
+            // Add click handler
+            button.addEventListener('click', () => {
+                this.handle2DButtonClick(buttonConfig);
+            });
+            
+            buttonsDiv.appendChild(button);
+        });
+        
+        // Show container
+        container.classList.remove('hidden');
+        console.log(`Created ${buttonConfigs.length} 2D buttons below detection frame`);
+    }
+    
+    hide2DButtons() {
+        const container = document.getElementById('product-buttons-container');
+        if (container) {
+            container.classList.add('hidden');
+        }
+    }
+    
+    handle2DButtonClick(buttonConfig) {
+        console.log(`🎯 2D Button clicked: ${buttonConfig.label}`);
+        
+        switch (buttonConfig.action.type) {
+            case 'url':
+                if (buttonConfig.action.new_window) {
+                    window.open(buttonConfig.action.target, '_blank');
+                } else {
+                    window.location.href = buttonConfig.action.target;
+                }
+                break;
+            case 'custom':
+                // Dispatch custom event
+                const customEvent = new CustomEvent('productButtonClick', {
+                    detail: {
+                        buttonId: buttonConfig.id,
+                        action: buttonConfig.action
+                    }
+                });
+                document.dispatchEvent(customEvent);
+                break;
+            default:
+                console.warn('Unknown button action type:', buttonConfig.action.type);
         }
     }
     
