@@ -26,6 +26,7 @@ export class ProductLoader {
         try {
             // Load app configuration - try multiple paths for better compatibility
             const isGitHubPages = window.location.hostname.includes('github.io');
+            console.log(`🌐 Environment detected: ${isGitHubPages ? 'GitHub Pages' : 'Local Development'} (hostname: ${window.location.hostname})`);
             const configPaths = isGitHubPages ? [
                 './src/config/app-config.json',    // GitHub Pages relative path (primary)
                 'src/config/app-config.json',      // GitHub Pages simple relative (fallback)
@@ -79,6 +80,7 @@ export class ProductLoader {
         try {
             // Try multiple paths for better compatibility
             const isGitHubPages = window.location.hostname.includes('github.io');
+            console.log(`🌐 Product config environment: ${isGitHubPages ? 'GitHub Pages' : 'Local Development'} for ${productId}`);
             const configPaths = isGitHubPages ? [
                 `./assets/products/${productId}/config.json`,    // GitHub Pages relative path (primary)
                 `assets/products/${productId}/config.json`,      // GitHub Pages simple relative (fallback)
