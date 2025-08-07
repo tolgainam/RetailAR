@@ -3,7 +3,8 @@
  * Handles 3D interactive buttons in AR space
  */
 
-import * as THREE from 'three';
+// Use global THREE from CDN
+const THREE = window.THREE;
 
 export class VirtualButtons {
     constructor(scene, camera) {
