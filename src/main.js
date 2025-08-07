@@ -731,15 +731,30 @@ class RetailAR {
     }
     
     async switchDetectionMethod(method) {
-        if (this.productDetector) {
+        if (!this.productDetector) {
+            this.showError('Detection system not ready yet. Please wait...');
+            return;
+        }
+        
+        // Ensure product loader is initialized
+        if (!this.productLoader.getAppConfig()) {
+            this.showStatus('Initializing product loader...', 'info');
             try {
-                await this.productDetector.setDetectionMethod(method);
-                this.updateMethodSwitcher();
-                this.showStatus(`Switched to ${method} detection`, 'success');
+                await this.productLoader.init();
             } catch (error) {
-                console.error('Failed to switch method:', error);
-                this.showError(`Failed to switch to ${method} detection`);
+                console.error('Failed to initialize product loader:', error);
+                this.showError('Failed to initialize product loader');
+                return;
             }
+        }
+        
+        try {
+            await this.productDetector.setDetectionMethod(method);
+            this.updateMethodSwitcher();
+            this.showStatus(`Switched to ${method} detection`, 'success');
+        } catch (error) {
+            console.error('Failed to switch method:', error);
+            this.showError(`Failed to switch to ${method} detection: ${error.message}`);
         }
     }
     

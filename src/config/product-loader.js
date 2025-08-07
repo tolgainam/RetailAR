@@ -24,8 +24,15 @@ export class ProductLoader {
     
     async _loadConfigs() {
         try {
-            // Load app configuration
-            const appConfigResponse = await fetch('/src/config/app-config.json');
+            // Load app configuration - handle both local dev and GitHub Pages deployment
+            const configPath = window.location.hostname.includes('github.io') 
+                ? './src/config/app-config.json'  // Relative path for GitHub Pages
+                : '/src/config/app-config.json';   // Absolute path for local dev
+            
+            const appConfigResponse = await fetch(configPath);
+            if (!appConfigResponse.ok) {
+                throw new Error(`Failed to load app config: ${appConfigResponse.status} ${appConfigResponse.statusText}`);
+            }
             this.appConfig = await appConfigResponse.json();
             
             // Load all product configurations
@@ -45,16 +52,21 @@ export class ProductLoader {
     
     async _loadProductConfig(productId) {
         try {
-            const response = await fetch(`/assets/products/${productId}/config.json`);
+            // Handle both local dev and GitHub Pages deployment
+            const configPath = window.location.hostname.includes('github.io')
+                ? `./assets/products/${productId}/config.json`  // Relative path for GitHub Pages
+                : `/assets/products/${productId}/config.json`;   // Absolute path for local dev
+                
+            const response = await fetch(configPath);
             if (!response.ok) {
-                throw new Error(`Failed to load config for ${productId}`);
+                throw new Error(`Failed to load config for ${productId}: ${response.status} ${response.statusText}`);
             }
             
             const config = await response.json();
             
             // Apply global detection method if not overridden
             if (!config.detection.method) {
-                config.detection.method = this.appConfig.app_settings.detection_method;
+                config.detection.method = this.appConfig?.app_settings?.detection_method || 'template';
             }
             
             // Resolve relative paths
@@ -68,22 +80,25 @@ export class ProductLoader {
     }
     
     _resolveAssetPaths(config, productId) {
-        const basePath = `/assets/products/${productId}`;
+        // Handle both local dev and GitHub Pages deployment
+        const basePath = window.location.hostname.includes('github.io')
+            ? `./assets/products/${productId}`     // Relative path for GitHub Pages
+            : `/assets/products/${productId}`;      // Absolute path for local dev
         
         // Resolve reference image paths
         config.detection.reference_images.forEach(img => {
-            if (!img.path.startsWith('http') && !img.path.startsWith('/assets')) {
+            if (!img.path.startsWith('http') && !img.path.startsWith('/assets') && !img.path.startsWith('./assets')) {
                 img.path = `${basePath}/${img.path}`;
             }
         });
         
         // Resolve 3D model path
-        if (config.visual['3d_model'] && !config.visual['3d_model'].startsWith('http')) {
+        if (config.visual['3d_model'] && !config.visual['3d_model'].startsWith('http') && !config.visual['3d_model'].startsWith('./assets')) {
             config.visual['3d_model'] = `${basePath}/${config.visual['3d_model']}`;
         }
         
         // Resolve ML model path
-        if (config.detection.ml_model && !config.detection.ml_model.startsWith('http')) {
+        if (config.detection.ml_model && !config.detection.ml_model.startsWith('http') && !config.detection.ml_model.startsWith('./assets')) {
             config.detection.ml_model = `${basePath}/${config.detection.ml_model}`;
         }
     }
@@ -124,6 +139,18 @@ export class ProductLoader {
             throw new Error(`Invalid detection method: ${method}`);
         }
         
+        // Ensure appConfig is loaded before setting detection method
+        if (!this.appConfig) {
+            console.warn('⚠️ AppConfig not loaded yet, initializing ProductLoader first...');
+            // Try to initialize and retry after a delay
+            this.init().then(() => {
+                this.setDetectionMethod(method);
+            }).catch(error => {
+                console.error('Failed to initialize ProductLoader:', error);
+            });
+            return;
+        }
+        
         this.appConfig.app_settings.detection_method = method;
         
         // Update all products that don't have method override
@@ -160,7 +187,7 @@ export class ProductLoader {
      */
     getDetectionMethod(productId) {
         const product = this.products.get(productId);
-        return product ? product.detection.method : this.appConfig.app_settings.detection_method;
+        return product ? product.detection.method : (this.appConfig?.app_settings?.detection_method || 'template');
     }
     
     /**
