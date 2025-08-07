@@ -25,10 +25,15 @@ export class ProductLoader {
     async _loadConfigs() {
         try {
             // Load app configuration - try multiple paths for better compatibility
-            const configPaths = [
-                '/src/config/app-config.json',     // Absolute path (preferred for local dev)
-                './src/config/app-config.json',    // Relative path (GitHub Pages fallback)
-                'src/config/app-config.json'       // Simple relative path (additional fallback)
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            const configPaths = isGitHubPages ? [
+                './src/config/app-config.json',    // GitHub Pages relative path (primary)
+                'src/config/app-config.json',      // GitHub Pages simple relative (fallback)
+                '/RetailAR/src/config/app-config.json'  // GitHub Pages absolute with repo name
+            ] : [
+                '/src/config/app-config.json',     // Local dev absolute path (primary)
+                './src/config/app-config.json',    // Local dev relative (fallback)
+                'src/config/app-config.json'       // Local dev simple relative (fallback)
             ];
             
             let appConfigResponse;
@@ -73,10 +78,15 @@ export class ProductLoader {
     async _loadProductConfig(productId) {
         try {
             // Try multiple paths for better compatibility
-            const configPaths = [
-                `/assets/products/${productId}/config.json`,     // Absolute path (preferred for local dev)
-                `./assets/products/${productId}/config.json`,    // Relative path (GitHub Pages fallback)
-                `assets/products/${productId}/config.json`       // Simple relative path (additional fallback)
+            const isGitHubPages = window.location.hostname.includes('github.io');
+            const configPaths = isGitHubPages ? [
+                `./assets/products/${productId}/config.json`,    // GitHub Pages relative path (primary)
+                `assets/products/${productId}/config.json`,      // GitHub Pages simple relative (fallback)
+                `/RetailAR/assets/products/${productId}/config.json`  // GitHub Pages absolute with repo name
+            ] : [
+                `/assets/products/${productId}/config.json`,     // Local dev absolute path (primary)
+                `./assets/products/${productId}/config.json`,    // Local dev relative (fallback)
+                `assets/products/${productId}/config.json`       // Local dev simple relative (fallback)
             ];
             
             let response;
