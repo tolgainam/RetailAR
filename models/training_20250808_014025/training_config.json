@@ -1,0 +1,19 @@
+{
+  "products": [
+    "zyn-apple-mint",
+    "zyn-spearmint",
+    "terea-yellow",
+    "terea-sienna",
+    "iqos-iluma-prime"
+  ],
+  "batch_size": 16,
+  "epochs": 30,
+  "img_size": [
+    224,
+    224
+  ],
+  "learning_rate": 0.001,
+  "training_samples": 520,
+  "validation_samples": 130,
+  "timestamp": "20250808_014025"
+}

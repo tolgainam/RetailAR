@@ -1,0 +1,24 @@
+{
+  "name": "retail-ar",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "WebAR Product Recognition App for IQOS/VEEV/ZYN",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist"
+  },
+  "keywords": ["webxr", "ar", "tensorflow", "threejs", "product-recognition"],
+  "author": "RetailAR",
+  "license": "MIT",
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "gh-pages": "^6.0.0"
+  },
+  "dependencies": {
+    "three": "^0.160.0",
+    "@tensorflow/tfjs": "^4.15.0",
+    "@tensorflow/tfjs-backend-webgl": "^4.15.0"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "version": "1.0.0",
+  "created_at": "2025-01-08T00:00:00Z",
+  "description": "Product configurations for RetailAR WebAR application",
+  "products": [
+    {
+      "id": "zyn-apple-mint",
+      "name": "ZYN Apple Mint",
+      "brand": "ZYN",
+      "category": "can",
+      "flavor": "Apple Mint",
+      "nicotine": "6mg",
+      "aroma_notes": ["Fresh Apple", "Cool Mint", "Crisp"],
+      "pricing": "$4.99",
+      "icon": "icons/zyn-apple-mint.png",
+      "learn_more_url": "https://zyn.com/products/apple-mint",
+      "buy_url": "https://store.zyn.com/apple-mint",
+      "model_path": "models/zyn-apple-mint.glb",
+      "brand_colors": ["#00ff88", "#ffffff"],
+      "particle_config": {
+        "type": "apple_mint_particles",
+        "primary_color": "#00ff88",
+        "secondary_color": "#90ff90",
+        "count": 120,
+        "animation": "floating_sparkles"
+      }
+    },
+    {
+      "id": "zyn-spearmint",
+      "name": "ZYN Spearmint",
+      "brand": "ZYN",
+      "category": "can",
+      "flavor": "Spearmint",
+      "nicotine": "6mg",
+      "aroma_notes": ["Cool Spearmint", "Fresh", "Cooling"],
+      "pricing": "$4.99",
+      "icon": "icons/zyn-spearmint.png",
+      "learn_more_url": "https://zyn.com/products/spearmint",
+      "buy_url": "https://store.zyn.com/spearmint",
+      "model_path": "models/zyn-spearmint.glb",
+      "brand_colors": ["#4dd0e1", "#ffffff"],
+      "particle_config": {
+        "type": "spearmint_particles",
+        "primary_color": "#4dd0e1",
+        "secondary_color": "#80e5ff",
+        "count": 100,
+        "animation": "cooling_mist"
+      }
+    },
+    {
+      "id": "terea-yellow",
+      "name": "TEREA Yellow Selection",
+      "brand": "IQOS",
+      "category": "pack",
+      "flavor": "Yellow Selection",
+      "nicotine": "6mg",
+      "aroma_notes": ["Balanced Tobacco", "Smooth", "Classic"],
+      "pricing": "$6.50",
+      "icon": "icons/terea-yellow.png",
+      "learn_more_url": "https://iqos.com/products/terea-yellow",
+      "buy_url": "https://store.iqos.com/terea-yellow",
+      "model_path": "models/terea-yellow.glb",
+      "brand_colors": ["#ffd54f", "#ffeb3b"],
+      "particle_config": {
+        "type": "yellow_particles",
+        "primary_color": "#ffd54f",
+        "secondary_color": "#fff176",
+        "count": 80,
+        "animation": "warm_flow"
+      }
+    },
+    {
+      "id": "terea-sienna",
+      "name": "TEREA Sienna",
+      "brand": "IQOS",
+      "category": "pack",
+      "flavor": "Sienna",
+      "nicotine": "6mg",
+      "aroma_notes": ["Rich Tobacco", "Woody", "Full-bodied"],
+      "pricing": "$6.50",
+      "icon": "icons/terea-sienna.png",
+      "learn_more_url": "https://iqos.com/products/terea-sienna",
+      "buy_url": "https://store.iqos.com/terea-sienna",
+      "model_path": "models/terea-sienna.glb",
+      "brand_colors": ["#8d6e63", "#a1887f"],
+      "particle_config": {
+        "type": "sienna_particles",
+        "primary_color": "#8d6e63",
+        "secondary_color": "#bcaaa4",
+        "count": 90,
+        "animation": "smoke_effects"
+      }
+    },
+    {
+      "id": "iqos-iluma-prime",
+      "name": "IQOS ILUMA PRIME",
+      "brand": "IQOS",
+      "category": "device",
+      "flavor": null,
+      "nicotine": null,
+      "aroma_notes": ["Premium Device", "Advanced Technology"],
+      "pricing": "$180.00",
+      "icon": "icons/iqos-iluma-prime.png",
+      "learn_more_url": "https://iqos.com/products/iluma-prime",
+      "buy_url": "https://store.iqos.com/iluma-prime",
+      "model_path": "models/iqos-iluma-prime.glb",
+      "brand_colors": ["#37474f", "#546e7a"],
+      "particle_config": {
+        "type": "premium_particles",
+        "primary_color": "#37474f",
+        "secondary_color": "#78909c",
+        "count": 60,
+        "animation": "sophisticated_glints"
+      }
+    }
+  ]
+}

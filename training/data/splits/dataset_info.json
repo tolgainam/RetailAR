@@ -1,0 +1,26 @@
+{
+  "products": [
+    "zyn-apple-mint",
+    "zyn-spearmint",
+    "terea-yellow",
+    "terea-sienna",
+    "iqos-iluma-prime"
+  ],
+  "total_images": 650,
+  "splits": {
+    "train": {
+      "zyn-apple-mint": 104,
+      "zyn-spearmint": 104,
+      "terea-yellow": 104,
+      "terea-sienna": 104,
+      "iqos-iluma-prime": 104
+    },
+    "val": {
+      "zyn-apple-mint": 26,
+      "zyn-spearmint": 26,
+      "terea-yellow": 26,
+      "terea-sienna": 26,
+      "iqos-iluma-prime": 26
+    }
+  }
+}

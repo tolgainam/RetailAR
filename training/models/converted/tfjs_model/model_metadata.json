@@ -1,0 +1,39 @@
+{
+  "model_info": {
+    "version": "1.0.0",
+    "created": "20250808_012401",
+    "framework": "TensorFlow.js",
+    "architecture": "MobileNetV2 + Custom Head"
+  },
+  "model_config": {
+    "input_shape": [
+      224,
+      224
+    ],
+    "num_classes": 5,
+    "products": [
+      "zyn-apple-mint",
+      "zyn-spearmint",
+      "terea-yellow",
+      "terea-sienna",
+      "iqos-iluma-prime"
+    ],
+    "preprocessing": {
+      "rescale": 0.00392156862745098,
+      "resize": [
+        224,
+        224
+      ]
+    }
+  },
+  "training_info": {
+    "epochs": 50,
+    "batch_size": 32,
+    "training_samples": 520,
+    "validation_samples": 130
+  },
+  "usage": {
+    "load_url": "./tfjs_model/model.json",
+    "example_inference": "\n// Load model\nconst model = await tf.loadLayersModel('./tfjs_model/model.json');\n\n// Preprocess image\nconst tensor = tf.browser.fromPixels(imageElement)\n  .resizeBilinear([224, 224])\n  .expandDims(0)\n  .div(255.0);\n\n// Make prediction\nconst prediction = model.predict(tensor);\nconst probabilities = await prediction.data();\nconst predictedClass = prediction.argMax(-1).dataSync()[0];\n\n// Get product name\nconst productName = products[predictedClass];\nconst confidence = probabilities[predictedClass];\n            "
+  }
+}
