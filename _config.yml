@@ -1,0 +1,24 @@
+# Jekyll configuration for GitHub Pages
+exclude:
+  - training/
+  - node_modules/
+  - package.json
+  - package-lock.json
+  - .gitignore
+  - README.md
+  - src/
+  - .DS_Store
+  - "*.glb"
+  - "*.blend"
+
+# GitHub Pages settings
+plugins:
+  - jekyll-relative-links
+
+# Markdown settings
+markdown: kramdown
+highlighter: rouge
+
+# Site settings
+title: RetailAR
+description: Augmented Reality for Retail Products
