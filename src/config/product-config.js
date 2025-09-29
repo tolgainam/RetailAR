@@ -77,7 +77,7 @@ export class ProductConfig {
                 icon: 'icons/zyn-apple-mint.png',
                 learn_more_url: 'https://zyn.com/products/apple-mint',
                 buy_url: 'https://store.zyn.com/apple-mint',
-                model_path: 'models/3d/products/green.glb',
+                model_path: './models/3d/products/green.glb',
                 brand_colors: ['#00ff88', '#ffffff'],
                 particle_config: {
                     type: 'apple_mint_particles',
@@ -99,7 +99,7 @@ export class ProductConfig {
                 icon: 'icons/zyn-spearmint.png',
                 learn_more_url: 'https://zyn.com/products/spearmint',
                 buy_url: 'https://store.zyn.com/spearmint',
-                model_path: 'models/3d/products/blue.glb',
+                model_path: './models/3d/products/blue.glb',
                 brand_colors: ['#4dd0e1', '#ffffff'],
                 particle_config: {
                     type: 'spearmint_particles',
@@ -121,7 +121,7 @@ export class ProductConfig {
                 icon: 'icons/terea-yellow.png',
                 learn_more_url: 'https://iqos.com/products/terea-yellow',
                 buy_url: 'https://store.iqos.com/terea-yellow',
-                model_path: 'models/3d/products/terea-yellow.glb',
+                model_path: './models/3d/products/terea-yellow.glb',
                 brand_colors: ['#ffd54f', '#ffeb3b'],
                 particle_config: {
                     type: 'yellow_particles',
@@ -143,7 +143,7 @@ export class ProductConfig {
                 icon: 'icons/terea-sienna.png',
                 learn_more_url: 'https://iqos.com/products/terea-sienna',
                 buy_url: 'https://store.iqos.com/terea-sienna',
-                model_path: 'models/3d/products/terea-sienna.glb',
+                model_path: './models/3d/products/terea-sienna.glb',
                 brand_colors: ['#8d6e63', '#a1887f'],
                 particle_config: {
                     type: 'sienna_particles',
@@ -165,7 +165,7 @@ export class ProductConfig {
                 icon: 'icons/iqos-iluma-prime.png',
                 learn_more_url: 'https://iqos.com/products/iluma-prime',
                 buy_url: 'https://store.iqos.com/iluma-prime',
-                model_path: 'models/3d/products/iqos-iluma-prime.glb',
+                model_path: './models/3d/products/iqos-iluma-prime.glb',
                 brand_colors: ['#37474f', '#546e7a'],
                 particle_config: {
                     type: 'premium_particles',

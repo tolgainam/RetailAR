@@ -22,11 +22,16 @@ export class UIManager {
         
         // State
         this.isProductInfoVisible = false;
-        this.debugMode = false;
+        this.debugMode = true; // Enable by default for troubleshooting
         
         // Initialize event listeners
         this.initializeEventListeners();
-        
+
+        // Show debug info immediately since debug mode is enabled by default
+        if (this.debugInfo) {
+            this.debugInfo.style.display = 'block';
+        }
+
         console.log('🖥️  UI Manager initialized');
     }
     

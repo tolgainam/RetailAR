@@ -206,8 +206,13 @@ export class ARRenderer {
     
     async loadModel(modelPath) {
         try {
+            // Try to construct the full URL for debugging
+            const baseUrl = window.location.origin + window.location.pathname;
+            const fullUrl = new URL(modelPath, baseUrl).href;
             console.log(`📥 Loading 3D model: ${modelPath}`);
-            
+            console.log(`📍 Full URL: ${fullUrl}`);
+            console.log(`🌐 Base URL: ${baseUrl}`);
+
             const gltf = await new Promise((resolve, reject) => {
                 this.modelLoader.load(
                     modelPath,
@@ -215,7 +220,11 @@ export class ARRenderer {
                     (progress) => {
                         console.log('Loading progress:', (progress.loaded / progress.total * 100) + '%');
                     },
-                    reject
+                    (error) => {
+                        console.error('❌ GLTFLoader error:', error);
+                        console.error('❌ Failed URL:', modelPath);
+                        reject(error);
+                    }
                 );
             });
             
@@ -333,10 +342,10 @@ export class ARRenderer {
         const velocities = this.particleSystem.geometry.attributes.velocity.array;
         
         for (let i = 0; i < positions.length; i += 3) {
-            // Update positions based on velocities
-            positions[i] += velocities[i];
-            positions[i + 1] += velocities[i + 1];
-            positions[i + 2] += velocities[i + 2];
+            // Update positions based on velocities (frame-rate independent)
+            positions[i] += velocities[i] * delta * 60; // Scale by delta time
+            positions[i + 1] += velocities[i + 1] * delta * 60;
+            positions[i + 2] += velocities[i + 2] * delta * 60;
             
             // Reset particles that go too far
             if (positions[i + 1] > 3) {

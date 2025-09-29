@@ -90,19 +90,32 @@ export class RetailARApp {
                 if (videoElement && videoElement.readyState === 4) {
                     // Run product detection
                     const result = await this.model.detectProduct(videoElement);
-                    
+
+                    // Log only successful detections to reduce spam
                     if (result.success) {
+                        console.log(`🔍 Detection: ${result.product} (${(result.confidence * 100).toFixed(1)}%)`);
                         console.log('✅ Product detected, calling handler...');
                         this.handleProductDetection(result);
                     } else {
                         this.handleNoDetection();
                     }
-                    
+
                     // Update debug info
                     this.ui.updateDebugInfo({
                         fps: this.fps,
                         detection: result.success ? result.product : 'None',
                         confidence: result.confidence ? `${(result.confidence * 100).toFixed(1)}%` : '0%'
+                    });
+                } else {
+                    // Only log video issues occasionally to reduce spam
+                    if (this.frameCount % 120 === 0) { // Every 2 seconds at 60fps
+                        console.log('⚠️ Video element not ready or not available');
+                    }
+                    // Update debug info to show video not ready
+                    this.ui.updateDebugInfo({
+                        fps: this.fps,
+                        detection: 'Video not ready',
+                        confidence: '0%'
                     });
                 }
                 
@@ -130,7 +143,7 @@ export class RetailARApp {
         
         // Check if this is a new product detection
         const isNewProduct = this.currentProduct !== productId;
-        const hasReasonableConfidence = confidence > 0.4; // Lower threshold for showing product
+        const hasReasonableConfidence = confidence > 0.1; // Very low threshold for troubleshooting
         
         console.log(`🔄 Checking conditions: current=${this.currentProduct}, detected=${productId}, confidence=${(confidence * 100).toFixed(1)}%`);
         console.log(`🔄 New product? ${isNewProduct}, Reasonable confidence? ${hasReasonableConfidence}`);
