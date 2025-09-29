@@ -182,26 +182,25 @@ export class ARRenderer {
         try {
             // Clear existing model
             this.clearCurrentModel();
-            
+
             // Load 3D model if available
             if (productConfig.model_path) {
                 await this.loadModel(productConfig.model_path);
             } else {
-                // Create fallback primitive model
-                this.createFallbackModel(productConfig);
+                this.showModelError('No model path specified');
+                return;
             }
-            
+
             // Create particle system
             if (productConfig.particle_config) {
                 this.createParticleSystem(productConfig.particle_config);
             }
-            
+
             console.log(`🎯 Showing visualization for: ${productConfig.name}`);
-            
+
         } catch (error) {
             console.error('❌ Failed to show product visualization:', error);
-            // Show fallback model on error
-            this.createFallbackModel(productConfig);
+            this.showModelError('Model failed to load');
         }
     }
     
@@ -247,41 +246,31 @@ export class ARRenderer {
         }
     }
     
-    createFallbackModel(productConfig) {
-        // Create a simple geometric representation
-        let geometry;
-        let material;
-        
-        if (productConfig.category === 'can') {
-            // Cylindrical shape for cans
-            geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 32);
-        } else if (productConfig.category === 'pack') {
-            // Box shape for packs
-            geometry = new THREE.BoxGeometry(0.6, 0.8, 0.1);
-        } else {
-            // Default box for devices
-            geometry = new THREE.BoxGeometry(0.5, 0.8, 0.3);
-        }
-        
-        // Create material with brand colors
-        const primaryColor = productConfig.brand_colors?.[0] || '#00ff88';
-        material = new THREE.MeshPhongMaterial({
-            color: primaryColor,
-            transparent: true,
-            opacity: 0.8
-        });
-        
-        this.currentModel = new THREE.Mesh(geometry, material);
-        this.currentModel.position.copy(this.modelPosition);
-        this.currentModel.scale.copy(this.modelScale);
-        
-        // Add to scene
-        this.scene.add(this.currentModel);
-        
-        // Add simple rotation animation
-        this.addSimpleRotationAnimation();
-        
-        console.log(`📦 Created fallback model for: ${productConfig.name}`);
+    showModelError(message) {
+        // Create small error text overlay
+        const errorDiv = document.createElement('div');
+        errorDiv.style.position = 'fixed';
+        errorDiv.style.top = '20px';
+        errorDiv.style.left = '20px';
+        errorDiv.style.color = '#ff6b6b';
+        errorDiv.style.fontSize = '12px';
+        errorDiv.style.fontFamily = 'monospace';
+        errorDiv.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        errorDiv.style.padding = '5px 8px';
+        errorDiv.style.borderRadius = '3px';
+        errorDiv.style.zIndex = '1000';
+        errorDiv.textContent = `3D: ${message}`;
+
+        document.body.appendChild(errorDiv);
+
+        // Remove error message after 3 seconds
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.parentNode.removeChild(errorDiv);
+            }
+        }, 3000);
+
+        console.log(`🚫 Model error: ${message}`);
     }
     
     createParticleSystem(particleConfig) {
@@ -360,18 +349,6 @@ export class ARRenderer {
         this.particleSystem.geometry.attributes.position.needsUpdate = true;
     }
     
-    addSimpleRotationAnimation() {
-        if (!this.currentModel) return;
-        
-        const rotateModel = () => {
-            if (this.currentModel) {
-                this.currentModel.rotation.y += 0.01;
-                requestAnimationFrame(rotateModel);
-            }
-        };
-        
-        rotateModel();
-    }
     
     hideProductVisualization() {
         this.clearCurrentModel();
