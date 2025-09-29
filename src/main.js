@@ -4,19 +4,20 @@
  */
 
 import { CameraManager } from './utils/camera-manager.js';
-import { MLModelManager } from './ml/model-manager.js';
 import { ARRenderer } from './ar/ar-renderer.js';
 import { UIManager } from './ui/ui-manager.js';
 import { ProductConfig } from './config/product-config.js';
+import { ModelFactory } from './ml/model-factory.js';
 
-class RetailARApp {
-    constructor() {
+export class RetailARApp {
+    constructor(modelType = 'cnn') {
         this.initialized = false;
         this.isDetecting = false;
+        this.modelType = modelType;
         
         // Core components
         this.camera = new CameraManager();
-        this.model = new MLModelManager();
+        this.model = ModelFactory.createModel(modelType);
         this.renderer = new ARRenderer();
         this.ui = new UIManager();
         this.products = new ProductConfig();
@@ -30,7 +31,7 @@ class RetailARApp {
         this.lastFrameTime = Date.now();
         this.fps = 0;
         
-        console.log('🚀 RetailAR App initialized');
+        console.log(`🚀 RetailAR App initialized with ${this.model.modelName} model`);
     }
     
     async initialize() {

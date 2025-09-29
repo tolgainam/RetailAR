@@ -1,31 +1,23 @@
 /**
- * ML Model Manager
- * Handles TensorFlow.js model loading and inference
+ * CNN Model Manager
+ * Handles TensorFlow.js CNN model loading and inference
  */
 
 import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
+import { BaseModelManager } from './base-model-manager.js';
 
-export class MLModelManager {
+export class MLModelManager extends BaseModelManager {
     constructor() {
-        this.model = null;
-        this.isLoaded = false;
-        this.modelConfig = null;
+        const modelConfig = {
+            name: 'Custom CNN',
+            type: 'cnn',
+            url: `./ml-model/model.json?v=${Date.now()}`,
+            confidenceThreshold: 0.3,
+            inputShape: [224, 224, 3]
+        };
         
-        // Product categories (must match training pipeline)
-        this.products = [
-            'zyn-apple-mint',
-            'zyn-spearmint', 
-            'terea-yellow',
-            'terea-sienna',
-            'iqos-iluma-prime'
-        ];
-        
-        // Model configuration
-        this.inputShape = [224, 224, 3];
-        this.confidenceThreshold = 0.3;  // Lowered for testing
-        
-        console.log('🤖 ML Model Manager initialized');
+        super(modelConfig);
     }
     
     async loadModel(modelUrl = `./ml-model/model.json?v=${Date.now()}`) {
