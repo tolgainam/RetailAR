@@ -16,6 +16,8 @@ export class ARRenderer {
         // 3D models and objects
         this.currentModel = null;
         this.particleSystem = null;
+        this.backgroundPlane = null;
+        this.fullScreenPanel = null;
         this.modelLoader = new GLTFLoader();
         
         // Animation
@@ -24,8 +26,8 @@ export class ARRenderer {
         this.isAnimating = false;
         
         // AR tracking (simplified - no full AR yet)
-        this.modelPosition = new THREE.Vector3(0, 0, -2);
-        this.modelScale = new THREE.Vector3(1, 1, 1);
+        this.modelPosition = new THREE.Vector3(0, 0, -0.5); // Closer to camera for AR overlay
+        this.modelScale = new THREE.Vector3(1, 1, 1); // Will be overridden per model
         
         console.log('🎨 AR Renderer initialized');
     }
@@ -183,6 +185,12 @@ export class ARRenderer {
             // Clear existing model
             this.clearCurrentModel();
 
+            // Store product config for scaling calculations
+            this.currentProductConfig = productConfig;
+
+            // Create full-screen brand panel first
+            this.createFullScreenPanel(productConfig);
+
             // Load 3D model if available
             if (productConfig.model_path) {
                 await this.loadModel(productConfig.model_path);
@@ -190,6 +198,9 @@ export class ARRenderer {
                 this.showModelError('No model path specified');
                 return;
             }
+
+            // Create background plane behind model
+            this.createBackgroundPlane(productConfig);
 
             // Create particle system
             if (productConfig.particle_config) {
@@ -201,6 +212,16 @@ export class ARRenderer {
         } catch (error) {
             console.error('❌ Failed to show product visualization:', error);
             this.showModelError('Model failed to load');
+        }
+    }
+
+    getRealWorldSize(productCategory) {
+        // Real-world sizes in meters
+        switch(productCategory) {
+            case 'can':     return 0.065; // ZYN cans: 6.5cm diameter
+            case 'pack':    return 0.075; // TEREA packs: 7.5cm length
+            case 'device':  return 0.12;  // IQOS devices: ~12cm length
+            default:        return 0.065; // Default to can size
         }
     }
     
@@ -229,10 +250,30 @@ export class ARRenderer {
             });
             
             this.currentModel = gltf.scene;
-            
-            // Position and scale the model
+
+            // Position, scale and orient the model for AR overlay
             this.currentModel.position.copy(this.modelPosition);
-            this.currentModel.scale.copy(this.modelScale);
+
+            // Calculate proper AR scale based on camera FOV and distance
+            const cameraDistance = Math.abs(this.modelPosition.z); // Distance from camera
+            const cameraFOV = this.camera.fov; // Camera field of view in degrees
+            const realWorldObjectSize = this.getRealWorldSize(this.currentProductConfig?.category || 'can');
+
+            // Calculate FOV height at object distance using trigonometry
+            const halfFOVRadians = (cameraFOV / 2) * (Math.PI / 180);
+            const fovHeight = 2 * Math.tan(halfFOVRadians) * cameraDistance;
+
+            // Calculate scale to make object appear life-sized
+            // We want the 3D object to take up the same screen space as a 3cm real object would
+            const desiredScreenSize = realWorldObjectSize; // How big we want it to appear
+            const arScale = desiredScreenSize / (fovHeight * 0.1); // Adjust multiplier as needed
+
+            console.log(`📏 AR Scale Calculation: Category=${this.currentProductConfig?.category}, RealSize=${realWorldObjectSize}m, FOV=${cameraFOV}°, Distance=${cameraDistance}m, Scale=${arScale.toFixed(4)}`);
+
+            this.currentModel.scale.setScalar(arScale);
+
+            // Rotate to view from top - rotate 90 degrees around X-axis
+            this.currentModel.rotation.x = -Math.PI / 2; // View from top instead of side
             
             // Set up animations if available
             if (gltf.animations && gltf.animations.length > 0) {
@@ -334,6 +375,69 @@ export class ARRenderer {
         
         console.log(`✨ Created particle system: ${particleConfig.type}`);
     }
+
+    createFullScreenPanel(productConfig) {
+        // Calculate screen dimensions based on camera FOV
+        const cameraDistance = 1; // Close to camera for full screen effect
+        const halfFOVRadians = (this.camera.fov / 2) * (Math.PI / 180);
+        const fovHeight = 2 * Math.tan(halfFOVRadians) * cameraDistance;
+        const aspect = this.camera.aspect;
+        const fovWidth = fovHeight * aspect;
+
+        // Create plane geometry that covers entire screen
+        const planeGeometry = new THREE.PlaneGeometry(fovWidth, fovHeight);
+
+        // Get brand colors
+        const primaryColor = new THREE.Color(productConfig.brand_colors?.[0] || '#00ff88');
+
+        // Create material with strong opacity
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            color: primaryColor,
+            transparent: true,
+            opacity: 0.85, // 85% opacity for strong brand presence
+            side: THREE.DoubleSide
+        });
+
+        // Create the full-screen panel
+        this.fullScreenPanel = new THREE.Mesh(planeGeometry, planeMaterial);
+        this.fullScreenPanel.position.set(0, 0, -cameraDistance);
+
+        // Add to scene (behind everything else)
+        this.scene.add(this.fullScreenPanel);
+
+        console.log(`🎨 Created full-screen panel with color: ${productConfig.brand_colors?.[0]}`);
+    }
+
+    createBackgroundPlane(productConfig) {
+        // Create circular plane behind the model
+        const planeGeometry = new THREE.CircleGeometry(0.15, 32); // 15cm radius circle
+
+        // Get brand colors
+        const primaryColor = new THREE.Color(productConfig.brand_colors?.[0] || '#00ff88');
+
+        // Create strong background material
+        const planeMaterial = new THREE.MeshBasicMaterial({
+            color: primaryColor,
+            transparent: true,
+            opacity: 0.8, // Strong opacity for visible background
+            side: THREE.DoubleSide
+        });
+
+        // Create the background plane
+        this.backgroundPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+        // Position slightly behind the model
+        this.backgroundPlane.position.copy(this.modelPosition);
+        this.backgroundPlane.position.z -= 0.01; // Just behind the model
+
+        // Rotate to face camera (perpendicular to view direction)
+        this.backgroundPlane.rotation.x = -Math.PI / 2; // Flat on the ground
+
+        // Add to scene
+        this.scene.add(this.backgroundPlane);
+
+        console.log(`🎯 Created background plane with color: ${productConfig.brand_colors?.[0]}`);
+    }
     
     updateParticles(delta) {
         if (!this.particleSystem) return;
@@ -368,7 +472,7 @@ export class ARRenderer {
     clearCurrentModel() {
         if (this.currentModel) {
             this.scene.remove(this.currentModel);
-            
+
             // Dispose of geometry and materials
             this.currentModel.traverse((child) => {
                 if (child.geometry) {
@@ -382,14 +486,33 @@ export class ARRenderer {
                     }
                 }
             });
-            
+
             this.currentModel = null;
         }
-        
+
         if (this.animationMixer) {
             this.animationMixer.stopAllAction();
             this.animationMixer = null;
         }
+
+        // Clear background plane
+        if (this.backgroundPlane) {
+            this.scene.remove(this.backgroundPlane);
+            this.backgroundPlane.geometry.dispose();
+            this.backgroundPlane.material.dispose();
+            this.backgroundPlane = null;
+        }
+
+        // Clear full-screen panel
+        if (this.fullScreenPanel) {
+            this.scene.remove(this.fullScreenPanel);
+            this.fullScreenPanel.geometry.dispose();
+            this.fullScreenPanel.material.dispose();
+            this.fullScreenPanel = null;
+        }
+
+        // Clear product config reference
+        this.currentProductConfig = null;
     }
     
     clearParticleSystem() {

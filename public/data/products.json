@@ -15,7 +15,7 @@
       "icon": "icons/zyn-apple-mint.png",
       "learn_more_url": "https://zyn.com/products/apple-mint",
       "buy_url": "https://store.zyn.com/apple-mint",
-      "model_path": "models/zyn-apple-mint.glb",
+      "model_path": "models/3d/products/green.glb",
       "brand_colors": ["#00ff88", "#ffffff"],
       "particle_config": {
         "type": "apple_mint_particles",
@@ -37,7 +37,7 @@
       "icon": "icons/zyn-spearmint.png",
       "learn_more_url": "https://zyn.com/products/spearmint",
       "buy_url": "https://store.zyn.com/spearmint",
-      "model_path": "models/zyn-spearmint.glb",
+      "model_path": "models/3d/products/blue.glb",
       "brand_colors": ["#4dd0e1", "#ffffff"],
       "particle_config": {
         "type": "spearmint_particles",

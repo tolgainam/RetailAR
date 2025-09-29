@@ -13,10 +13,10 @@ export class BaseModelManager {
         
         this.products = [
             'zyn-apple-mint',
-            'zyn-spearmint', 
+            'zyn-spearmint',
             'terea-yellow',
-            'terea-sienna'
-            // 'iqos-iluma-prime' - DISABLED
+            'terea-sienna',
+            'iqos-iluma-prime'
         ];
         
         this.model = null;
