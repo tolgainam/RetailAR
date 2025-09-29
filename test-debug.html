@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RetailAR Debug Test</title>
+</head>
+<body>
+    <h1>RetailAR Debug Test</h1>
+    <div id="status">Loading...</div>
+    <div id="debug-output"></div>
+
+    <script type="module">
+        console.log('=== RetailAR Debug Test Started ===');
+
+        const statusDiv = document.getElementById('status');
+        const debugDiv = document.getElementById('debug-output');
+
+        function log(message) {
+            console.log(message);
+            debugDiv.innerHTML += message + '<br>';
+        }
+
+        try {
+            // Test 1: Import main app
+            log('Testing import of main app...');
+            import('./src/main.js').then(({ RetailARApp }) => {
+                log('✅ Main app imported successfully');
+
+                // Test 2: Create app instance
+                log('Creating app instance...');
+                const app = new RetailARApp();
+                log('✅ App instance created');
+
+                // Test 3: Try to initialize
+                log('Initializing app...');
+                app.initialize().then(() => {
+                    log('✅ App initialized successfully');
+                    statusDiv.textContent = 'App working!';
+                }).catch(error => {
+                    log('❌ App initialization failed: ' + error.message);
+                    statusDiv.textContent = 'App failed to initialize';
+                });
+
+            }).catch(error => {
+                log('❌ Failed to import main app: ' + error.message);
+                statusDiv.textContent = 'Import failed';
+            });
+
+        } catch (error) {
+            log('❌ Critical error: ' + error.message);
+            statusDiv.textContent = 'Critical error';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>NFT Marker Images for Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .marker {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+        }
+        .marker img {
+            max-width: 300px;
+            max-height: 300px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        .marker h3 {
+            margin: 10px 0;
+            color: #333;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 NFT Marker Images for AR Testing</h1>
+
+    <div class="instructions">
+        <h3>How to test:</h3>
+        <ol>
+            <li>Open the AR test page: <a href="test-nft-simple.html" target="_blank">test-nft-simple.html</a></li>
+            <li>Display one of these images on another device or print them</li>
+            <li>Point your camera at the displayed image (not the physical product)</li>
+            <li>Look for the green rotating box and "ZYN DETECTED!" text</li>
+        </ol>
+    </div>
+
+    <div class="marker">
+        <h3>ZYN Apple Mint</h3>
+        <img src="./markers/zyn-apple-mint.jpg" alt="ZYN Apple Mint NFT Marker">
+        <p>Point camera at this image for AR tracking</p>
+    </div>
+
+    <div class="marker">
+        <h3>ZYN Spearmint</h3>
+        <img src="./markers/zyn-spearmint.jpg" alt="ZYN Spearmint NFT Marker">
+        <p>Point camera at this image for AR tracking</p>
+    </div>
+
+    <script>
+        console.log('📱 Marker display page loaded');
+        console.log('Use these images for NFT tracking tests');
+    </script>
+</body>
+</html>

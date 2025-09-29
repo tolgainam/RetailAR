@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>NFT Tracking Test</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar-nft.js"></script>
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .arjs-loader div {
+            text-align: center;
+            font-size: 1.25em;
+            color: white;
+        }
+    </style>
+</head>
+
+<body style="margin: 0px; overflow: hidden;">
+    <div class="arjs-loader">
+        <div>Loading NFT Tracking Test...</div>
+    </div>
+
+    <a-scene
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true;"
+        embedded
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+
+        <!-- Test ZYN Apple Mint NFT marker -->
+        <a-nft
+            type="nft"
+            url="./markers/zyn-apple-mint"
+            smooth="true"
+            smoothCount="10"
+            smoothTolerance=".01"
+            smoothThreshold="5">
+
+            <!-- Simple red box for testing -->
+            <a-box
+                position="0 0.5 0"
+                material="color: red;"
+                scale="0.3 0.3 0.3"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 3000">
+            </a-box>
+
+            <!-- Green plane background -->
+            <a-plane
+                position="0 0 -0.1"
+                rotation="-90 0 0"
+                width="2"
+                height="2"
+                color="green"
+                opacity="0.5"
+                material="transparent: true">
+            </a-plane>
+
+        </a-nft>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        // Debug logging
+        console.log('🧪 NFT Test page loaded');
+
+        // Hide loader after delay
+        setTimeout(() => {
+            const loader = document.querySelector('.arjs-loader');
+            if (loader) {
+                loader.style.display = 'none';
+                console.log('✅ Loader hidden');
+            }
+        }, 2000);
+
+        // Test if NFT descriptor files are accessible
+        async function testNFTFiles() {
+            const baseUrl = './markers/zyn-apple-mint';
+            const files = ['fset', 'fset3', 'iset'];
+
+            console.log('🔍 Testing NFT descriptor file access...');
+
+            for (const ext of files) {
+                const url = `${baseUrl}.${ext}`;
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const size = response.headers.get('content-length');
+                        console.log(`✅ ${url} - ${size} bytes`);
+                    } else {
+                        console.error(`❌ ${url} - HTTP ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error(`❌ ${url} - ${error.message}`);
+                }
+            }
+        }
+
+        // Test file access after a delay
+        setTimeout(testNFTFiles, 1000);
+
+        // Listen for NFT events
+        const nftMarker = document.querySelector('a-nft');
+
+        if (nftMarker) {
+            console.log('✅ NFT marker element found');
+            console.log('NFT URL:', nftMarker.getAttribute('url'));
+
+            // All possible NFT events
+            const events = ['markerFound', 'markerLost', 'nftLoaded', 'nftLoadingFailed', 'arjsNFTLoaded'];
+
+            events.forEach(eventName => {
+                nftMarker.addEventListener(eventName, function(e) {
+                    console.log(`🔔 NFT Event: ${eventName}`, e.detail || '');
+                });
+            });
+
+            // Check if NFT component is properly initialized
+            setTimeout(() => {
+                console.log('NFT Element attributes:', {
+                    url: nftMarker.getAttribute('url'),
+                    type: nftMarker.getAttribute('type'),
+                    loaded: nftMarker.hasLoaded
+                });
+            }, 3000);
+
+        } else {
+            console.error('❌ No NFT marker element found!');
+        }
+
+        // Global event listener for any AR.js events
+        document.addEventListener('nftFound', function(e) {
+            console.log('🌐 Global NFT Found event:', e.detail);
+        });
+
+        document.addEventListener('nftLost', function(e) {
+            console.log('🌐 Global NFT Lost event:', e.detail);
+        });
+    </script>
+</body>
+</html>

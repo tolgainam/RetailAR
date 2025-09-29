@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RetailAR - WebAR Product Recognition Model Comparison">
+    <title>RetailAR - Model Comparison</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 50px;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #00ff88, #ff6b35);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        .model-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .model-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .model-card.cnn {
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+
+        .model-card.cnn:hover {
+            border-color: rgba(0, 255, 136, 0.6);
+            box-shadow: 0 10px 40px rgba(0, 255, 136, 0.2);
+        }
+
+        .model-card.efficientnet {
+            border-color: rgba(255, 107, 53, 0.3);
+        }
+
+        .model-card.efficientnet:hover {
+            border-color: rgba(255, 107, 53, 0.6);
+            box-shadow: 0 10px 40px rgba(255, 107, 53, 0.2);
+        }
+
+        .model-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .model-accuracy {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .cnn .model-accuracy {
+            color: #00ff88;
+        }
+
+        .efficientnet .model-accuracy {
+            color: #ff6b35;
+        }
+
+        .model-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .model-description {
+            font-size: 0.95rem;
+            color: #ccc;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .try-button {
+            display: inline-block;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .cnn .try-button {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .cnn .try-button:hover {
+            background: #00ff88;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .efficientnet .try-button {
+            background: #ff6b35;
+            color: #fff;
+        }
+
+        .efficientnet .try-button:hover {
+            background: #ff8c42;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 107, 53, 0.4);
+        }
+
+        .info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info h3 {
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .info p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .model-comparison {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .title {
+                font-size: 2rem;
+            }
+            
+            .model-card {
+                padding: 20px;
+            }
+            
+            .model-stats {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">RetailAR</h1>
+            <p class="subtitle">Compare ML Models for Product Recognition</p>
+        </div>
+
+        <div class="model-comparison">
+            <!-- CNN Model -->
+            <div class="model-card cnn">
+                <h2 class="model-name">Custom CNN</h2>
+                <div class="model-accuracy">85%</div>
+                
+                <div class="model-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Model Size</div>
+                        <div class="stat-value">~5MB</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Performance</div>
+                        <div class="stat-value">Excellent</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Load Time</div>
+                        <div class="stat-value">Fast</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Mobile</div>
+                        <div class="stat-value">Optimized</div>
+                    </div>
+                </div>
+                
+                <p class="model-description">
+                    Current production model. Lightweight and fast with solid accuracy. 
+                    Perfect for mobile devices with excellent performance.
+                </p>
+                
+                <a href="cnn.html" class="try-button">Try CNN Model</a>
+            </div>
+
+            <!-- EfficientNet Model -->
+            <div class="model-card efficientnet">
+                <h2 class="model-name">EfficientNet-Lite</h2>
+                <div class="model-accuracy">89-93%</div>
+                
+                <div class="model-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Model Size</div>
+                        <div class="stat-value">~25MB</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Performance</div>
+                        <div class="stat-value">Good</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Load Time</div>
+                        <div class="stat-value">Medium</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Mobile</div>
+                        <div class="stat-value">Capable</div>
+                    </div>
+                </div>
+                
+                <p class="model-description">
+                    Advanced architecture with higher accuracy. Larger model but significantly 
+                    better recognition capabilities for complex scenarios.
+                </p>
+                
+                <a href="efficientnet.html" class="try-button">Try EfficientNet Model</a>
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>🧪 A/B Testing Setup</h3>
+            <p>
+                Both models run the same core application with identical UI and features. 
+                The only difference is the underlying machine learning architecture. 
+                Test both models to compare accuracy, performance, and user experience 
+                on your device.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="RetailAR - CNN Model Test - WebAR Product Recognition">
+    <title>RetailAR - CNN Model</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline'; 
+        style-src 'self' 'unsafe-inline'; 
+        img-src 'self' blob: data:; 
+        media-src 'self' blob:;
+        connect-src 'self' blob:;
+    ">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Camera Container */
+        #camera-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* AR Canvas */
+        #ar-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .model-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 255, 136, 0.9);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 100;
+        }
+
+        /* Product Info Panel */
+        #product-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 350px;
+            width: 90%;
+            display: none;
+            z-index: 50;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .product-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .product-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin-right: 15px;
+            background: #333;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .product-brand {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .product-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .detail-item {
+            text-align: center;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #00ff88;
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Navigation */
+        .nav-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .model-indicator {
+                top: 10px;
+                left: 10px;
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            
+            .nav-button {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Model Indicator -->
+    <div class="model-indicator">CNN Model (85%)</div>
+    
+    <!-- Navigation -->
+    <a href="efficientnet.html" class="nav-button">Try EfficientNet →</a>
+    
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" id="loading-text">Initializing RetailAR...</div>
+        <div style="font-size: 14px; color: #999; margin-top: 20px;">CNN Model Test</div>
+    </div>
+
+    <!-- Camera Feed -->
+    <div id="camera-container">
+        <video id="camera-feed" autoplay muted playsinline></video>
+    </div>
+
+    <!-- AR Canvas -->
+    <canvas id="ar-canvas"></canvas>
+
+    <!-- Product Information Panel -->
+    <div id="product-info">
+        <div class="product-header">
+            <img class="product-icon" id="product-icon" alt="Product Icon">
+            <div>
+                <div class="product-title" id="product-name">Product Name</div>
+                <div class="product-brand" id="product-brand">Brand</div>
+            </div>
+        </div>
+        
+        <div class="product-details">
+            <div class="detail-item">
+                <div class="detail-label">Flavor</div>
+                <div class="detail-value" id="product-flavor">-</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Price</div>
+                <div class="detail-value" id="product-price">-</div>
+            </div>
+        </div>
+        
+        <div class="product-actions">
+            <button class="action-btn btn-secondary" onclick="window.open(document.getElementById('learn-more-url').href, '_blank')">
+                Learn More
+            </button>
+            <button class="action-btn btn-primary" onclick="window.open(document.getElementById('buy-url').href, '_blank')">
+                Buy Now
+            </button>
+        </div>
+        
+        <!-- Hidden elements for URLs -->
+        <a id="learn-more-url" style="display: none;"></a>
+        <a id="buy-url" style="display: none;"></a>
+    </div>
+
+    <!-- Main Application Script -->
+    <script type="module">
+        import { RetailARApp } from './src/main.js';
+        
+        // Initialize with CNN model
+        const app = new RetailARApp('cnn');
+        
+        // Start the application
+        app.initialize().catch(error => {
+            console.error('Failed to initialize RetailAR:', error);
+            document.getElementById('loading-text').textContent = 'Failed to load. Please refresh.';
+        });
+    </script>
+</body>
+</html>

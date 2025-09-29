@@ -207,6 +207,9 @@ export class ARRenderer {
                 this.createParticleSystem(productConfig.particle_config);
             }
 
+            // Start dynamic scaling animation
+            this.startDynamicScaling();
+
             console.log(`🎯 Showing visualization for: ${productConfig.name}`);
 
         } catch (error) {
@@ -254,23 +257,8 @@ export class ARRenderer {
             // Position, scale and orient the model for AR overlay
             this.currentModel.position.copy(this.modelPosition);
 
-            // Calculate proper AR scale based on camera FOV and distance
-            const cameraDistance = Math.abs(this.modelPosition.z); // Distance from camera
-            const cameraFOV = this.camera.fov; // Camera field of view in degrees
-            const realWorldObjectSize = this.getRealWorldSize(this.currentProductConfig?.category || 'can');
-
-            // Calculate FOV height at object distance using trigonometry
-            const halfFOVRadians = (cameraFOV / 2) * (Math.PI / 180);
-            const fovHeight = 2 * Math.tan(halfFOVRadians) * cameraDistance;
-
-            // Calculate scale to make object appear life-sized
-            // We want the 3D object to take up the same screen space as a 3cm real object would
-            const desiredScreenSize = realWorldObjectSize; // How big we want it to appear
-            const arScale = desiredScreenSize / (fovHeight * 0.1); // Adjust multiplier as needed
-
-            console.log(`📏 AR Scale Calculation: Category=${this.currentProductConfig?.category}, RealSize=${realWorldObjectSize}m, FOV=${cameraFOV}°, Distance=${cameraDistance}m, Scale=${arScale.toFixed(4)}`);
-
-            this.currentModel.scale.setScalar(arScale);
+            // Calculate dynamic AR scale based on simulated object distance
+            this.updateDynamicScale();
 
             // Rotate to view from top - rotate 90 degrees around X-axis
             this.currentModel.rotation.x = -Math.PI / 2; // View from top instead of side
@@ -438,6 +426,65 @@ export class ARRenderer {
 
         console.log(`🎯 Created background plane with color: ${productConfig.brand_colors?.[0]}`);
     }
+
+    updateDynamicScale() {
+        if (!this.currentModel || !this.currentProductConfig) return;
+
+        // Simulate dynamic distance based on time for demonstration
+        // In a real implementation, this would use actual object detection bounding box
+        const time = Date.now() * 0.001; // Convert to seconds
+        const oscillation = Math.sin(time * 0.5) * 0.3 + 0.7; // Oscillate between 0.4 and 1.0
+
+        // Calculate dynamic distance (simulating object moving closer/farther)
+        const baseCameraDistance = 0.5;
+        const dynamicDistance = baseCameraDistance * oscillation;
+
+        // Update model position for depth effect
+        this.currentModel.position.z = -dynamicDistance;
+
+        // Calculate proper AR scale based on dynamic distance
+        const cameraFOV = this.camera.fov;
+        const realWorldObjectSize = this.getRealWorldSize(this.currentProductConfig.category);
+
+        // Calculate FOV height at object distance using trigonometry
+        const halfFOVRadians = (cameraFOV / 2) * (Math.PI / 180);
+        const fovHeight = 2 * Math.tan(halfFOVRadians) * dynamicDistance;
+
+        // Calculate scale to maintain apparent size
+        // Objects farther away need to be larger to appear the same size
+        const arScale = realWorldObjectSize / (fovHeight * 0.08); // Adjusted multiplier
+
+        this.currentModel.scale.setScalar(arScale);
+
+        // Also update background plane position to follow model
+        if (this.backgroundPlane) {
+            this.backgroundPlane.position.z = this.currentModel.position.z - 0.01;
+        }
+
+        // Optional: Add some dynamic lighting effect
+        if (this.backgroundPlane) {
+            const intensity = 0.5 + oscillation * 0.3; // Vary between 0.5 and 0.8
+            this.backgroundPlane.material.opacity = intensity;
+        }
+    }
+
+    startDynamicScaling() {
+        if (this.dynamicScaleInterval) {
+            clearInterval(this.dynamicScaleInterval);
+        }
+
+        // Update dynamic scale every frame for smooth animation
+        this.dynamicScaleInterval = setInterval(() => {
+            this.updateDynamicScale();
+        }, 16); // ~60 FPS
+    }
+
+    stopDynamicScaling() {
+        if (this.dynamicScaleInterval) {
+            clearInterval(this.dynamicScaleInterval);
+            this.dynamicScaleInterval = null;
+        }
+    }
     
     updateParticles(delta) {
         if (!this.particleSystem) return;
@@ -510,6 +557,9 @@ export class ARRenderer {
             this.fullScreenPanel.material.dispose();
             this.fullScreenPanel = null;
         }
+
+        // Stop dynamic scaling
+        this.stopDynamicScaling();
 
         // Clear product config reference
         this.currentProductConfig = null;
