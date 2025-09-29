@@ -184,6 +184,24 @@
             z-index: 4;
             display: none;
         }
+
+        /* Mobile Console Log for debugging */
+        #mobile-console {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
         
         @media (max-width: 768px) {
             .product-info {
@@ -237,8 +255,64 @@
             <div>Detection: <span id="detection-status">Initializing</span></div>
             <div>Confidence: <span id="confidence">0%</span></div>
         </div>
+
+        <!-- Mobile Console for debugging -->
+        <div id="mobile-console"></div>
     </div>
     
+    <script>
+        // Mobile console for debugging
+        (function() {
+            const mobileConsole = document.getElementById('mobile-console');
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+
+            // Show mobile console on mobile devices or when URL contains debug
+            const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const debugMode = window.location.search.includes('debug') || window.location.hash.includes('debug');
+
+            if (isMobile || debugMode) {
+                mobileConsole.style.display = 'block';
+            }
+
+            function addToMobileConsole(type, args) {
+                if (mobileConsole.style.display === 'none') return;
+
+                const timestamp = new Date().toLocaleTimeString();
+                const message = Array.from(args).map(arg =>
+                    typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+                ).join(' ');
+
+                const div = document.createElement('div');
+                div.style.color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#ffd93d' : '#00ff00';
+                div.textContent = `[${timestamp}] ${message}`;
+
+                mobileConsole.appendChild(div);
+                mobileConsole.scrollTop = mobileConsole.scrollHeight;
+
+                // Keep only last 50 messages
+                while (mobileConsole.children.length > 50) {
+                    mobileConsole.removeChild(mobileConsole.firstChild);
+                }
+            }
+
+            console.log = function(...args) {
+                addToMobileConsole('log', args);
+                originalLog.apply(console, args);
+            };
+
+            console.error = function(...args) {
+                addToMobileConsole('error', args);
+                originalError.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                addToMobileConsole('warn', args);
+                originalWarn.apply(console, args);
+            };
+        })();
+    </script>
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

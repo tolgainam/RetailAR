@@ -21,50 +21,84 @@ export class CameraManager {
     
     async initialize() {
         try {
+            console.log('📹 Starting camera initialization...');
+
             // Get video element from DOM
             this.videoElement = document.getElementById('camera-feed');
-            
+
             if (!this.videoElement) {
                 throw new Error('Video element not found');
             }
-            
+            console.log('✅ Video element found');
+
             // Check if getUserMedia is available
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error('Camera access not supported by this browser');
             }
-            
+            console.log('✅ getUserMedia supported');
+
+            // Check available devices for debugging
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                console.log(`📹 Found ${videoDevices.length} video devices:`, videoDevices.map(d => d.label || 'Unknown camera'));
+            } catch (e) {
+                console.warn('⚠️ Could not enumerate devices:', e);
+            }
+
+            console.log('📹 Requesting camera access with constraints:', this.constraints);
+
             // Request camera access
             this.stream = await navigator.mediaDevices.getUserMedia(this.constraints);
-            
+            console.log('✅ Camera stream obtained');
+
             // Set up video element
             this.videoElement.srcObject = this.stream;
-            
+            console.log('✅ Video stream attached to element');
+
             // Wait for video to be ready
             await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    reject(new Error('Video metadata loading timeout (10s)'));
+                }, 10000); // 10 second timeout
+
                 this.videoElement.onloadedmetadata = () => {
+                    clearTimeout(timeout);
+                    console.log(`✅ Video metadata loaded: ${this.videoElement.videoWidth}x${this.videoElement.videoHeight}`);
                     resolve();
                 };
-                
+
                 this.videoElement.onerror = (error) => {
+                    clearTimeout(timeout);
+                    console.error('❌ Video element error:', error);
                     reject(new Error('Failed to load camera stream'));
                 };
             });
             
             // Start playing
+            console.log('📹 Starting video playback...');
             await this.videoElement.play();
-            
+            console.log('✅ Video is playing');
+
             console.log('✅ Camera initialized successfully');
             console.log(`📐 Video resolution: ${this.videoElement.videoWidth}x${this.videoElement.videoHeight}`);
-            
+
             return true;
-            
+
         } catch (error) {
             console.error('❌ Camera initialization failed:', error);
-            
-            // Handle specific error types
+            console.error('❌ Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
+
+            // Handle specific error types with detailed logging
             if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                console.error('❌ Camera permission denied by user');
                 throw new Error('Camera permission denied. Please allow camera access and reload the page.');
             } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                console.error('❌ No camera device found');
                 throw new Error('No camera found. Please ensure your device has a camera.');
             } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
                 throw new Error('Camera is already in use by another application.');
