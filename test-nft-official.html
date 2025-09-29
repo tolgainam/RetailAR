@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Official AR.js NFT Implementation</title>
+
+    <!-- Official A-Frame and AR.js versions from example -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe@1.6.0/dist/aframe-master.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .arjs-loader div {
+            text-align: center;
+            font-size: 1.25em;
+            color: white;
+        }
+
+        #debug-console {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+            max-width: 350px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body style="margin: 0px; overflow: hidden;">
+    <!-- Loader -->
+    <div class="arjs-loader">
+        <div>Loading AR.js NFT...</div>
+    </div>
+
+    <!-- Debug Console -->
+    <div id="debug-console">
+        <div>🔧 Official AR.js NFT Test</div>
+        <div>Status: Initializing...</div>
+        <div id="nft-status">NFT: Loading...</div>
+        <div id="tracking-status">Tracking: Waiting...</div>
+    </div>
+
+    <!-- A-Frame Scene with official configuration -->
+    <a-scene
+        vr-mode-ui="enabled: false;"
+        renderer="logarithmicDepthBuffer: true; precision: medium;"
+        embedded
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;">
+
+        <!-- NFT marker with official event structure -->
+        <a-nft
+            type="nft"
+            url="./markers/zyn-apple-mint"
+            smooth="true"
+            smoothCount="10"
+            smoothTolerance=".01"
+            smoothThreshold="5">
+
+            <!-- Content positioned like official example -->
+            <a-box
+                position="150 300 -100"
+                material="color: red;"
+                scale="5 5 5"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 2000">
+            </a-box>
+
+            <a-text
+                value="ZYN NFT DETECTED!"
+                position="0 500 0"
+                align="center"
+                color="white"
+                scale="20 20 20">
+            </a-text>
+
+            <a-plane
+                position="0 0 -100"
+                rotation="-90 0 0"
+                width="300"
+                height="300"
+                color="green"
+                opacity="0.7"
+                material="transparent: true">
+            </a-plane>
+
+        </a-nft>
+
+        <!-- Camera -->
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <script>
+        console.log('🚀 Official AR.js NFT Test Started');
+
+        const debugConsole = document.getElementById('debug-console');
+        const nftStatus = document.getElementById('nft-status');
+        const trackingStatus = document.getElementById('tracking-status');
+
+        function updateDebug(message) {
+            console.log(message);
+            const div = document.createElement('div');
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            debugConsole.appendChild(div);
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+
+        // Wait for scene to load
+        document.querySelector('a-scene').addEventListener('loaded', function() {
+            updateDebug('✅ A-Frame scene loaded');
+
+            const nftElement = document.querySelector('a-nft');
+
+            // CRITICAL: Listen for official AR.js NFT events
+            nftElement.addEventListener('arjs-nft-loaded', function() {
+                updateDebug('🎯 NFT DESCRIPTORS LOADED SUCCESSFULLY!');
+                nftStatus.textContent = 'NFT: Ready for tracking';
+            });
+
+            nftElement.addEventListener('arjs-nft-init-data', function() {
+                updateDebug('🔧 NFT initialization data received');
+            });
+
+            // Marker tracking events
+            nftElement.addEventListener('markerFound', function() {
+                updateDebug('🎉 MARKER FOUND - TRACKING ACTIVE!');
+                trackingStatus.textContent = 'Tracking: ACTIVE';
+            });
+
+            nftElement.addEventListener('markerLost', function() {
+                updateDebug('📍 Marker lost');
+                trackingStatus.textContent = 'Tracking: Lost';
+            });
+
+            updateDebug('🔍 NFT event listeners registered');
+        });
+
+        // Hide loader after delay
+        setTimeout(() => {
+            const loader = document.querySelector('.arjs-loader');
+            if (loader) {
+                loader.style.display = 'none';
+                updateDebug('✅ Loader hidden, camera should be active');
+            }
+        }, 3000);
+
+        // Global error handling
+        window.addEventListener('error', function(e) {
+            updateDebug('❌ Error: ' + e.message);
+        });
+
+    </script>
+</body>
+</html>
